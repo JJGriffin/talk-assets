@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "d365ce_url": {
+      "value": "https://jjg.crm11.dynamics.com"
+    },
+    "d365ce_userName": {
+      "value": "johndoe@domain.com"
+    },
+    "aad_objectID": {
+      "value": "d3d8fcb0-bea8-43e2-ae0d-834e4b1e571b"
+    },
+    "email": {
+      "value": "johndoe@domain.com"
+    },
+    "d365ce_password": {
+      "value": "mypassword"
+    },
+    "onpremsql_connectionString": {
+      "value": "integrated security=False;data source=localhost;initial catalog=D365CEADFDEMO_MSCRM;user id=adf-ir;password=MyNewPassword;"
+    }
+  }
+}
