@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "d365ce_url": {
-      "value": "https://jjg.crm11.dynamics.com"
+      "value": "https://mycrminstance.crm11.dynamics.com"
     },
     "d365ce_userName": {
       "value": "johndoe@domain.com"
