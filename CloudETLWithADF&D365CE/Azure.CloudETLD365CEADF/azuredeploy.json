@@ -1,0 +1,2811 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "akv_name": {
+      "defaultValue": "adfd365ce-akv",
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Key vault resource to be created."
+      }
+    },
+    "adf_name": {
+      "defaultValue": "adfd365ce-adf",
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Data Factory V2 resource to be created."
+      }
+    },
+    "sa_name": {
+      "defaultValue": "adfd365cesa",
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Storage Account resource to be created."
+      }
+    },
+    "d365ce_url": {
+      "type": "string",
+      "metadata": {
+        "description": "URL for the D365 tenant e.g. https://mycrm.crm11.dynamics.com"
+      }
+    },
+    "d365ce_userName": {
+      "type": "string",
+      "metadata": {
+        "description": "User Name to access the D365 tenant."
+      }
+    },
+    "d365ce_password": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password to access the D365 tenant."
+      }
+    },
+    "onpremsql_connectionString": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Connection string for the On-Premise SQL Server 2008 instance"
+      }
+    },
+    "adb_name": {
+      "defaultValue": "adfd365ce-db",
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Data Bricks resource to be created."
+      }
+    },
+    "aad_objectID": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique Identifier of the Azure Active Directory account that should have full access privileges for the Azure Key Vault resource (if in doubt, use your own)."
+      }
+    },
+    "email": {
+      "type": "string",
+      "metadata": {
+        "description": "Email address of the account to be used with Azure Data Bricks (if in doubt, this should be the same Azure AD account name being used to deploy this template e.g. john@smith.onmicrosoft.com"
+      }
+    }
+  },
+  "variables": {
+    "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('adf_name'))]",
+    "adb_managedRGName": "[concat('databricks-rg-', parameters('adb_name'), '-', uniqueString(parameters('adb_name'), resourceGroup().id))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2016-10-01",
+      "name": "[parameters('akv_name')]",
+      "location": "uksouth",
+      "tags": {
+        "displayName": "Azure Key Vault"
+      },
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "Standard"
+        },
+        "tenantId": "[subscription().tenantId]",
+        "accessPolicies": [
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[parameters('aad_objectID')]",
+            "permissions": {
+              "keys": [
+                "Get",
+                "List",
+                "Update",
+                "Create",
+                "Import",
+                "Delete",
+                "Recover",
+                "Backup",
+                "Restore"
+              ],
+              "secrets": [
+                "Get",
+                "List",
+                "Set",
+                "Delete",
+                "Recover",
+                "Backup",
+                "Restore"
+              ],
+              "certificates": [
+                "Get",
+                "List",
+                "Update",
+                "Create",
+                "Import",
+                "Delete",
+                "Recover",
+                "Backup",
+                "Restore",
+                "ManageContacts",
+                "ManageIssuers",
+                "GetIssuers",
+                "ListIssuers",
+                "SetIssuers",
+                "DeleteIssuers"
+              ]
+            }
+          }
+        ],
+        "enabledForDeployment": false,
+        "enabledForDiskEncryption": false,
+        "enabledForTemplateDeployment": false
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2018-07-01",
+      "name": "[parameters('sa_name')]",
+      "location": "uksouth",
+      "tags": {
+        "displayName": "Sink Data Storage Account"
+      },
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "enabled": true
+            },
+            "blob": {
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "accessTier": "Hot"
+      },
+      "resources": [
+        {
+          "name": "default/crmsinkdata-account",
+          "type": "blobServices/containers",
+          "apiVersion": "2018-07-01",
+          "dependsOn": [
+            "[parameters('sa_name')]"
+          ]
+        },
+        {
+          "name": "default/crmsinkdata-contact",
+          "type": "blobServices/containers",
+          "apiVersion": "2018-07-01",
+          "dependsOn": [
+            "[parameters('sa_name')]"
+          ]
+        },
+        {
+          "name": "default/crmsinkdata-lead",
+          "type": "blobServices/containers",
+          "apiVersion": "2018-07-01",
+          "dependsOn": [
+            "[parameters('sa_name')]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(parameters('akv_name'), '/CDSPass')]",
+      "location": "uksouth",
+      "tags": {
+        "displayName": "CDS Secret for Key Vault"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('akv_name'))]"
+      ],
+      "properties": {
+        "attributes": {
+          "enabled": true
+        },
+        "value": "[parameters('d365ce_Password')]"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(parameters('akv_name'), '/DataBrickAT')]",
+      "location": "uksouth",
+      "tags": {
+        "displayName": "Azure Data Brick Access Token Secret for Key Vault"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('akv_name'))]"
+      ],
+      "properties": {
+        "attributes": {
+          "enabled": true
+        },
+        "value": "UPDATEME"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(parameters('akv_name'), '/SAConnectionString')]",
+      "location": "uksouth",
+      "tags": {
+        "displayName": "Storage Account Connection String for Key Vault"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('akv_name'))]"
+      ],
+      "properties": {
+        "attributes": {
+          "enabled": true
+        },
+        "value": "UPDATEME"
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(parameters('akv_name'), '/SQLOnPremise')]",
+      "location": "uksouth",
+      "tags": {
+        "displayName": "On Premise SQL Server 2008 Connection String for Key Vault"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('akv_name'))]"
+      ],
+      "properties": {
+        "attributes": {
+          "enabled": true
+        },
+        "value": "[parameters('onpremsql_connectionString')]"
+      }
+    },
+    {
+      "name": "[parameters('adf_name')]",
+      "apiVersion": "2018-06-01",
+      "type": "Microsoft.DataFactory/factories",
+      "location": "uksouth",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "tags": {
+        "displayName": "Azure Data Factory V2"
+      },
+      "properties": {},
+      "resources": [
+        {
+          "type": "pipelines",
+          "name": "CRM2013_D365CE_Account",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Account Import Pipeline"
+          },
+          "properties": {
+            "activities": [
+              {
+                "name": "sql-to-blob",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "SqlServerSource",
+                    "sqlReaderQuery": "SELECT\n\tAccountId AS accountid,\n\tName AS name,\n\tCreatedOn AS createdon,\n\tStateCode AS statecode,\n\tStatusCode AS statuscode,\n\tTelephone1 AS telephone1,\n\tFax AS fax,\n\tIndustryCode AS industrycode,\n\tNumberOfEmployees AS numberofemployees,\n\tAddress1_Line1 AS address1_line1,\n\tAddress1_City AS address1_city,\n\tAddress1_County AS address1_county,\n\tAddress1_PostalCode AS address1_postalcode,\n\tAddress1_Country AS address1_country,\n\tAddress1_Latitude AS address1_latitude,\n\tAddress1_Longitude AS address1_longitude\nFROM [dbo].[Account]"
+                  },
+                  "sink": {
+                    "type": "DelimitedTextSink",
+                    "storeSettings": {
+                      "type": "AzureBlobStorageWriteSetting",
+                      "copyBehavior": "FlattenHierarchy"
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextWriteSetting",
+                      "quoteAllText": true,
+                      "fileExtension": ".csv"
+                    }
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "mappings": [
+                      {
+                        "source": {
+                          "name": "accountid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "accountid",
+                          "type": "Guid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "name",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "name",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "createdon",
+                          "type": "DateTime"
+                        },
+                        "sink": {
+                          "name": "createdon",
+                          "type": "DateTime"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "telephone1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "telephone1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "fax",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "fax",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "industrycode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "industrycode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "numberofemployees",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "numberofemployees",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_city",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_city",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_county",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_county",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_country",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_country",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_latitude",
+                          "type": "Double"
+                        },
+                        "sink": {
+                          "name": "address1_latitude",
+                          "type": "Double"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_longitude",
+                          "type": "Double"
+                        },
+                        "sink": {
+                          "name": "address1_longitude",
+                          "type": "Double"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "CRM2013OnPremSQL",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "Staging_Account",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ]
+              },
+              {
+                "name": "D365CE ADF Transformations",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                  {
+                    "activity": "sql-to-blob",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "notebookPath": "[concat('/Users/', parameters('email'), '/D365CE ADF Transformations')]",
+                  "baseParameters": {
+                    "filename": {
+                      "value": "@concat('Staging_Account_', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
+                      "type": "Expression"
+                    }
+                  }
+                },
+                "linkedServiceName": {
+                  "referenceName": "[parameters('adb_name')]",
+                  "type": "LinkedServiceReference"
+                }
+              },
+              {
+                "name": "blob-to-d365ce",
+                "type": "Copy",
+                "dependsOn": [
+                  {
+                    "activity": "D365CE ADF Transformations",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "DelimitedTextSource",
+                    "storeSettings": {
+                      "type": "AzureBlobStorageReadSetting",
+                      "recursive": true,
+                      "wildcardFileName": "Staging_Account_????-??-??_Transformed.csv",
+                      "enablePartitionDiscovery": false
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextReadSetting"
+                    }
+                  },
+                  "sink": {
+                    "type": "DynamicsSink",
+                    "writeBatchSize": 10,
+                    "writeBehavior": "upsert"
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "mappings": [
+                      {
+                        "source": {
+                          "name": "accountid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "accountid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "name",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "name"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statecode"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statuscode"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "createdon",
+                          "type": "DateTime"
+                        },
+                        "sink": {
+                          "name": "overriddencreatedon"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "telephone1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "telephone1"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "fax",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "fax"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_line1"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_city",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_city"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_postalcode"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_latitude",
+                          "type": "Double"
+                        },
+                        "sink": {
+                          "name": "address1_latitude"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_longitude",
+                          "type": "Double"
+                        },
+                        "sink": {
+                          "name": "address1_longitude"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "industrycode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "industrycode"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "numberofemployees",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "numberofemployees"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_county",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_county"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_country",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_country"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "Staging_Account_Transformed",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "CDS_Account",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ]
+              }
+            ],
+            "annotations": []
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/datasets/CRM2013OnPremSQL')]",
+            "[concat(variables('factoryId'), '/datasets/Staging_Account')]",
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('adb_name'))]",
+            "[concat(variables('factoryId'), '/datasets/Staging_Account_Transformed')]",
+            "[concat(variables('factoryId'), '/datasets/CDS_Account')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "pipelines",
+          "name": "CRM2013_D365CE_Contact",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Contact Import Pipeline"
+          },
+          "properties": {
+            "activities": [
+              {
+                "name": "sql-to-blob",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "SqlServerSource",
+                    "sqlReaderQuery": "SELECT\n\tContactId AS contactid,\n\tFirstName AS firstname,\n\tLastName AS lastname,\n\tCreatedOn AS createdon,\n\t--UID supplied below must be for a user that exists in the target environment.\n\tCAST('d5621c9b-989c-4d0c-8bf9-093dcd6246f1' AS UNIQUEIDENTIFIER) AS ownerid,\n\tStateCode AS statecode,\n\tStatusCode AS statuscode,\n\tSalutation AS salutation,\n\tAccountId AS accountid,\n\tTelephone1 AS telephone1,\n\tEMailAddress1 AS emailaddress1,\n\tAddress1_Line1 AS address1_line1,\n\tAddress1_City AS address1_city,\n\tAddress1_PostalCode AS address1_postalcode,\n\tBirthDate AS birthdate,\n\tCreditLimit AS creditlimit\nFROM [dbo].[Contact]"
+                  },
+                  "sink": {
+                    "type": "DelimitedTextSink",
+                    "storeSettings": {
+                      "type": "AzureBlobStorageWriteSetting"
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextWriteSetting",
+                      "quoteAllText": true,
+                      "fileExtension": ".txt"
+                    }
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "mappings": [
+                      {
+                        "source": {
+                          "name": "contactid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "contactid",
+                          "type": "Guid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "firstname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "firstname",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "lastname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "lastname",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "createdon",
+                          "type": "DateTime"
+                        },
+                        "sink": {
+                          "name": "createdon",
+                          "type": "DateTime"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "ownerid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "ownerid",
+                          "type": "Guid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "salutation",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "salutation",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "accountid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "accountid",
+                          "type": "Guid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "telephone1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "telephone1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "emailaddress1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "emailaddress1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_city",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_city",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "birthdate",
+                          "type": "DateTime"
+                        },
+                        "sink": {
+                          "name": "birthdate",
+                          "type": "DateTime"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "creditlimit",
+                          "type": "Decimal"
+                        },
+                        "sink": {
+                          "name": "creditlimit",
+                          "type": "Decimal"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "CRM2013OnPremSQL",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "Staging_Contact",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ]
+              },
+              {
+                "name": "D365CE ADF Transformations",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                  {
+                    "activity": "sql-to-blob",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "notebookPath": "[concat('/Users/', parameters('email'), '/D365CE ADF Transformations')]",
+                  "baseParameters": {
+                    "filename": {
+                      "value": "@concat('Staging_Contact_', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
+                      "type": "Expression"
+                    }
+                  }
+                },
+                "linkedServiceName": {
+                  "referenceName": "[parameters('adb_name')]",
+                  "type": "LinkedServiceReference"
+                }
+              },
+              {
+                "name": "blob-to-d365ce",
+                "type": "Copy",
+                "dependsOn": [
+                  {
+                    "activity": "D365CE ADF Transformations",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "DelimitedTextSource",
+                    "storeSettings": {
+                      "type": "AzureBlobStorageReadSetting",
+                      "recursive": true,
+                      "wildcardFileName": "Staging_Contact_????-??-??_Transformed.csv",
+                      "enablePartitionDiscovery": false
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextReadSetting"
+                    }
+                  },
+                  "sink": {
+                    "type": "DynamicsSink",
+                    "writeBatchSize": 10,
+                    "writeBehavior": "upsert",
+                    "ignoreNullValues": false
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "mappings": [
+                      {
+                        "source": {
+                          "name": "contactid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "contactid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "firstname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "firstname"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "lastname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "lastname"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "createdon",
+                          "type": "DateTime"
+                        },
+                        "sink": {
+                          "name": "overriddencreatedon"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statecode"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statuscode"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "salutation",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "salutation"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "accountid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "crmchap_adfaccountlookupid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "telephone1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "telephone1"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "emailaddress1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "emailaddress1"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_line1"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_city",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_city"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_postalcode"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "birthdate",
+                          "type": "DateTime"
+                        },
+                        "sink": {
+                          "name": "birthdate"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "creditlimit",
+                          "type": "Decimal"
+                        },
+                        "sink": {
+                          "name": "creditlimit"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "preferredcontactmethodcode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "preferredcontactmethodcode"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "donotemail",
+                          "type": "Boolean"
+                        },
+                        "sink": {
+                          "name": "donotemail"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "donotbulkemail",
+                          "type": "Boolean"
+                        },
+                        "sink": {
+                          "name": "donotbulkemail"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "donotphone",
+                          "type": "Boolean"
+                        },
+                        "sink": {
+                          "name": "donotphone"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "donotfax",
+                          "type": "Boolean"
+                        },
+                        "sink": {
+                          "name": "donotfax"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "donotpostalmail",
+                          "type": "Boolean"
+                        },
+                        "sink": {
+                          "name": "donotpostalmail"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "Staging_Contact_Transformed",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "CDS_Contact",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ]
+              }
+            ],
+            "annotations": []
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/datasets/CRM2013OnPremSQL')]",
+            "[concat(variables('factoryId'), '/datasets/Staging_Contact')]",
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('adb_name'))]",
+            "[concat(variables('factoryId'), '/datasets/Staging_Contact_Transformed')]",
+            "[concat(variables('factoryId'), '/datasets/CDS_Contact')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "pipelines",
+          "name": "CRM2013_D365CE_DataMigration",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "End-to-End Import Pipeline"
+          },
+          "properties": {
+            "activities": [
+              {
+                "name": "CRM2013_D365CE_Lead",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "CRM2013_D365CE_Lead",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true,
+                  "parameters": {}
+                }
+              },
+              {
+                "name": "CRM2013_D365CE_Account",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                  {
+                    "activity": "CRM2013_D365CE_Lead",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "CRM2013_D365CE_Account",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true,
+                  "parameters": {}
+                }
+              },
+              {
+                "name": "CRM2013_D365CE_Contact",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                  {
+                    "activity": "CRM2013_D365CE_Account",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                  "pipeline": {
+                    "referenceName": "CRM2013_D365CE_Contact",
+                    "type": "PipelineReference"
+                  },
+                  "waitOnCompletion": true,
+                  "parameters": {}
+                }
+              }
+            ],
+            "annotations": []
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/pipelines/CRM2013_D365CE_Lead')]",
+            "[concat(variables('factoryId'), '/pipelines/CRM2013_D365CE_Account')]",
+            "[concat(variables('factoryId'), '/pipelines/CRM2013_D365CE_Contact')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "pipelines",
+          "name": "CRM2013_D365CE_Lead",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Lead Import Pipeline"
+          },
+          "properties": {
+            "activities": [
+              {
+                "name": "sql-to-blob",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "SqlServerSource",
+                    "sqlReaderQuery": "SELECT\n\tLeadId AS leadid,\n\t[Subject] AS [subject],\n\tCreatedOn AS createdon,\n\t--UID supplied below must be for a user that exists in the target environment.\n\tCAST('d5621c9b-989c-4d0c-8bf9-093dcd6246f1' AS UNIQUEIDENTIFIER) AS ownerid,\n\tStateCode AS statecode,\n\tStatusCode AS statuscode,\n\tSalutation AS salutation,\n\tFirstName AS firstname,\n\tLastName AS lastname,\n\tCompanyName AS companyname,\n\tTelephone1 AS telephone1,\n\tEMailAddress1 AS emailaddress1,\n\tAddress1_Line1 AS address1_line1,\n\tAddress1_City AS address1_city,\n\tAddress1_PostalCode AS address1_postalcode,\n\t[Description] AS [description],\n\tLeadQualityCode AS leadqualitycode,\n\tLeadSourceCode AS leadsourcecode\nFROM [dbo].[Lead]"
+                  },
+                  "sink": {
+                    "type": "DelimitedTextSink",
+                    "storeSettings": {
+                      "type": "AzureBlobStorageWriteSetting"
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextWriteSetting",
+                      "quoteAllText": true,
+                      "fileExtension": ".csv"
+                    }
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "mappings": [
+                      {
+                        "source": {
+                          "name": "leadid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "leadid",
+                          "type": "Guid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "subject",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "subject",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "ownerid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "ownerid",
+                          "type": "Guid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "createdon",
+                          "type": "DateTime"
+                        },
+                        "sink": {
+                          "name": "createdon",
+                          "type": "DateTime"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "salutation",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "salutation",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "firstname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "firstname",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "lastname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "lastname",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "companyname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "companyname",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "telephone1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "telephone1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "emailaddress1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "emailaddress1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_city",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_city",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "description",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "description",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "leadqualitycode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "leadqualitycode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "leadsourcecode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "leadsourcecode",
+                          "type": "Int32"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "CRM2013OnPremSQL",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "Staging_Lead",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ]
+              },
+              {
+                "name": "D365CE ADF Transformations",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                  {
+                    "activity": "sql-to-blob",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "notebookPath": "[concat('/Users/', parameters('email'), '/D365CE ADF Transformations')]",
+                  "baseParameters": {
+                    "filename": {
+                      "value": "@concat('Staging_Lead_', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
+                      "type": "Expression"
+                    }
+                  }
+                },
+                "linkedServiceName": {
+                  "referenceName": "[parameters('adb_name')]",
+                  "type": "LinkedServiceReference"
+                }
+              },
+              {
+                "name": "blob-to-d365ce",
+                "type": "Copy",
+                "dependsOn": [
+                  {
+                    "activity": "D365CE ADF Transformations",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "DelimitedTextSource",
+                    "storeSettings": {
+                      "type": "AzureBlobStorageReadSetting",
+                      "recursive": true,
+                      "wildcardFileName": "Staging_Lead_????-??-??_Transformed.csv",
+                      "enablePartitionDiscovery": false
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextReadSetting"
+                    }
+                  },
+                  "sink": {
+                    "type": "DynamicsSink",
+                    "writeBatchSize": 10,
+                    "writeBehavior": "upsert"
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "mappings": [
+                      {
+                        "source": {
+                          "name": "leadid",
+                          "type": "Guid"
+                        },
+                        "sink": {
+                          "name": "leadid",
+                          "type": "Guid"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "subject",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "subject",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "createdon",
+                          "type": "DateTime"
+                        },
+                        "sink": {
+                          "name": "overriddencreatedon",
+                          "type": "DateTime"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statecode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "statuscode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "salutation",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "salutation",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "firstname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "firstname",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "lastname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "lastname",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "companyname",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "companyname",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "telephone1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "telephone1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "emailaddress1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "emailaddress1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_line1",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_city",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_city",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "address1_postalcode",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "description",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "description",
+                          "type": "String"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "leadqualitycode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "leadqualitycode",
+                          "type": "Int32"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "leadsourcecode",
+                          "type": "Int32"
+                        },
+                        "sink": {
+                          "name": "leadsourcecode",
+                          "type": "Int32"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "Staging_Lead_Transformed",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "CDS_Lead",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ]
+              }
+            ],
+            "annotations": []
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/datasets/CRM2013OnPremSQL')]",
+            "[concat(variables('factoryId'), '/datasets/Staging_Lead')]",
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('adb_name'))]",
+            "[concat(variables('factoryId'), '/datasets/Staging_Lead_Transformed')]",
+            "[concat(variables('factoryId'), '/datasets/CDS_Lead')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "CDS_Account",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "CDS Account Dataset"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "CDSLinkedService",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "CDS"
+            },
+            "annotations": [],
+            "type": "DynamicsEntity",
+            "structure": [
+              {
+                "name": "accountid",
+                "type": "Guid"
+              },
+              {
+                "name": "name",
+                "type": "String"
+              },
+              {
+                "name": "overriddencreatedon",
+                "type": "DateTime"
+              },
+              {
+                "name": "statecode",
+                "type": "Int32"
+              },
+              {
+                "name": "statuscode",
+                "type": "Int32"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "fax",
+                "type": "String"
+              },
+              {
+                "name": "industrycode",
+                "type": "Int32"
+              },
+              {
+                "name": "numberofemployees",
+                "type": "Int32"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "address1_county",
+                "type": "String"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "address1_country",
+                "type": "String"
+              },
+              {
+                "name": "address1_latitude",
+                "type": "Double"
+              },
+              {
+                "name": "address1_longitude",
+                "type": "Double"
+              }
+            ],
+            "typeProperties": {
+              "entityName": "account"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/CDSLinkedService')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "/CDS_Contact",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "CDS Contact Dataset"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "CDSLinkedService",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "CDS"
+            },
+            "annotations": [],
+            "type": "DynamicsEntity",
+            "structure": [
+              {
+                "name": "contactid",
+                "type": "Guid"
+              },
+              {
+                "name": "firstname",
+                "type": "String"
+              },
+              {
+                "name": "lastname",
+                "type": "String"
+              },
+              {
+                "name": "overriddencreatedon",
+                "type": "DateTime"
+              },
+              {
+                "name": "statecode",
+                "type": "Int32"
+              },
+              {
+                "name": "statuscode",
+                "type": "Int32"
+              },
+              {
+                "name": "salutation",
+                "type": "String"
+              },
+              {
+                "name": "crmchap_adfaccountlookupid",
+                "type": "Guid"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "emailaddress1",
+                "type": "String"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "birthdate",
+                "type": "DateTime"
+              },
+              {
+                "name": "creditlimit",
+                "type": "Decimal"
+              },
+              {
+                "name": "preferredcontactmethodcode",
+                "type": "Int32"
+              },
+              {
+                "name": "donotemail",
+                "type": "Boolean"
+              },
+              {
+                "name": "donotbulkemail",
+                "type": "Boolean"
+              },
+              {
+                "name": "donotphone",
+                "type": "Boolean"
+              },
+              {
+                "name": "donotfax",
+                "type": "Boolean"
+              },
+              {
+                "name": "donotpostalmail",
+                "type": "Boolean"
+              }
+            ],
+            "typeProperties": {
+              "entityName": "contact"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/CDSLinkedService')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "CDS_Lead",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "CDS Lead Dataset"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "CDSLinkedService",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "CDS"
+            },
+            "annotations": [],
+            "type": "DynamicsEntity",
+            "structure": [
+              {
+                "name": "emailaddress1",
+                "type": "String"
+              },
+              {
+                "name": "lastname",
+                "type": "String"
+              },
+              {
+                "name": "firstname",
+                "type": "String"
+              },
+              {
+                "name": "companyname",
+                "type": "String"
+              },
+              {
+                "name": "statuscode",
+                "type": "Int32"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "leadqualitycode",
+                "type": "Int32"
+              },
+              {
+                "name": "subject",
+                "type": "String"
+              },
+              {
+                "name": "leadid",
+                "type": "Guid"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "statecode",
+                "type": "Int32"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "leadsourcecode",
+                "type": "Int32"
+              },
+              {
+                "name": "overriddencreatedon",
+                "type": "DateTime"
+              },
+              {
+                "name": "salutation",
+                "type": "String"
+              },
+              {
+                "name": "description",
+                "type": "String"
+              }
+            ],
+            "typeProperties": {
+              "entityName": "lead"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/CDSLinkedService')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "CRM2013OnPremSQL",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "CRM 2013 SQL On-Premise Dataset"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "CRM2013OnPremSQL",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "CRM2013SQL"
+            },
+            "annotations": [],
+            "type": "SqlServerTable",
+            "schema": [],
+            "typeProperties": {}
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/CRM2013OnPremSQL')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "Staging_Account",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Staging_Account CSV Blob"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[parameters('sa_name')]",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "Blob"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                  "value": "@concat('Staging_Account_', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
+                  "type": "Expression"
+                },
+                "container": "crmsinkdata-account"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": []
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('sa_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "Staging_Account_Transformed",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Staging_Account_Transformed CSV Blob"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[parameters('sa_name')]",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "Blob"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                  "value": "@concat('Staging_Account_', formatDateTime(utcnow(), 'yyyy-MM-dd'),'_Transformed')",
+                  "type": "Expression"
+                },
+                "container": "crmsinkdata-account"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "teamsize",
+                "type": "String"
+              },
+              {
+                "name": "accountid",
+                "type": "Guid"
+              },
+              {
+                "name": "name",
+                "type": "String"
+              },
+              {
+                "name": "statecode",
+                "type": "Int32"
+              },
+              {
+                "name": "statuscode",
+                "type": "Int32"
+              },
+              {
+                "name": "createdon",
+                "type": "DateTime"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "fax",
+                "type": "String"
+              },
+              {
+                "name": "industrycode",
+                "type": "Int32"
+              },
+              {
+                "name": "numberofemployees",
+                "type": "Int32"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "address1_county",
+                "type": "String"
+              },
+              {
+                "name": "address1_country",
+                "type": "String"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "address1_latitude",
+                "type": "Double"
+              },
+              {
+                "name": "address1_longitude",
+                "type": "Double"
+              },
+              {
+                "name": "owningteam",
+                "type": "Guid"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('sa_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "Staging_Contact",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Staging_Contact CSV Blob"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[parameters('sa_name')]",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "Blob"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                  "value": "@concat('Staging_Contact_', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
+                  "type": "Expression"
+                },
+                "container": "crmsinkdata-contact"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": []
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('sa_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "Staging_Contact_Transformed",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Staging_Contact_Transformed CSV Blob"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[parameters('sa_name')]",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "Blob"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                  "value": "@concat('Staging_Contact_', formatDateTime(utcnow(), 'yyyy-MM-dd'),'_Transformed')",
+                  "type": "Expression"
+                },
+                "container": "crmsinkdata-contact"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "contactid",
+                "type": "Guid"
+              },
+              {
+                "name": "firstname",
+                "type": "String"
+              },
+              {
+                "name": "lastname",
+                "type": "String"
+              },
+              {
+                "name": "createdon",
+                "type": "DateTime"
+              },
+              {
+                "name": "ownerid",
+                "type": "Guid"
+              },
+              {
+                "name": "statecode",
+                "type": "Int32"
+              },
+              {
+                "name": "statuscode",
+                "type": "Int32"
+              },
+              {
+                "name": "salutation",
+                "type": "String"
+              },
+              {
+                "name": "accountid",
+                "type": "Guid"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "emailaddress1",
+                "type": "String"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "birthdate",
+                "type": "DateTime"
+              },
+              {
+                "name": "creditlimit",
+                "type": "Decimal"
+              },
+              {
+                "name": "preferredcontactmethodcode",
+                "type": "Int32"
+              },
+              {
+                "name": "donotemail",
+                "type": "Boolean"
+              },
+              {
+                "name": "donotbulkemail",
+                "type": "Boolean"
+              },
+              {
+                "name": "donotphone",
+                "type": "Boolean"
+              },
+              {
+                "name": "donotfax",
+                "type": "Boolean"
+              },
+              {
+                "name": "donotpostalmail",
+                "type": "Boolean"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('sa_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "Staging_Lead",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Staging_Lead CSV Blob"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[parameters('sa_name')]",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "Blob"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                  "value": "@concat('Staging_Lead_', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
+                  "type": "Expression"
+                },
+                "container": "crmsinkdata-lead"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": []
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('sa_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "datasets",
+          "name": "Staging_Lead_Transformed",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Staging_Lead_Transformed CSV Blob"
+          },
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "[parameters('sa_name')]",
+              "type": "LinkedServiceReference"
+            },
+            "folder": {
+              "name": "Blob"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                  "value": "@concat('Staging_Lead_', formatDateTime(utcnow(), 'yyyy-MM-dd'),'_Transformed')",
+                  "type": "Expression"
+                },
+                "container": "crmsinkdata-lead"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "leadid",
+                "type": "Guid"
+              },
+              {
+                "name": "subject",
+                "type": "String"
+              },
+              {
+                "name": "createdon",
+                "type": "DateTime"
+              },
+              {
+                "name": "ownerid",
+                "type": "Guid"
+              },
+              {
+                "name": "statecode",
+                "type": "Int32"
+              },
+              {
+                "name": "statuscode",
+                "type": "Int32"
+              },
+              {
+                "name": "salutation",
+                "type": "String"
+              },
+              {
+                "name": "firstname",
+                "type": "String"
+              },
+              {
+                "name": "lastname",
+                "type": "String"
+              },
+              {
+                "name": "companyname",
+                "type": "String"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "emailaddress1",
+                "type": "String"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "description",
+                "type": "String"
+              },
+              {
+                "name": "leadqualitycode",
+                "type": "Int32"
+              },
+              {
+                "name": "leadsourcecode",
+                "type": "Int32"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('sa_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "linkedServices",
+          "name": "[parameters('sa_name')]",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Storage Account Linked Service"
+          },
+          "properties": {
+            "type": "AzureBlobStorage",
+            "typeProperties": {
+              "connectionString": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                  "referenceName": "[parameters('akv_name')]",
+                  "type": "LinkedServiceReference"
+                },
+                "secretName": "SAConnectionString"
+              }
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('akv_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "linkedServices",
+          "name": "CDSLinkedService",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Common Data Service Linked Service"
+          },
+          "properties": {
+            "annotations": [],
+            "type": "Dynamics",
+            "typeProperties": {
+              "deploymentType": "Online",
+              "serviceUri": "[parameters('d365ce_URL')]",
+              "authenticationType": "Office365",
+              "username": "[parameters('d365ce_UserName')]",
+              "password": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                  "referenceName": "[parameters('akv_name')]",
+                  "type": "LinkedServiceReference"
+                },
+                "secretName": "CDSPass"
+              }
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('akv_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "linkedServices",
+          "name": "CRM2013OnPremSQL",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "CRM 2013 On-Premise SQL Linked Service"
+          },
+          "properties": {
+            "type": "SqlServer",
+            "typeProperties": {
+              "connectionString": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                  "referenceName": "[parameters('akv_name')]",
+                  "type": "LinkedServiceReference"
+                },
+                "secretName": "SQLOnPremise"
+              }
+            },
+            "connectVia": {
+              "referenceName": "CRM2013SQLOnPremise",
+              "type": "IntegrationRuntimeReference"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/integrationRuntimes/CRM2013SQLOnPremise')]",
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('akv_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "linkedServices",
+          "name": "[parameters('adb_name')]",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Azure Data Brick Linked Service"
+          },
+          "properties": {
+            "type": "AzureDataBricks",
+            "typeProperties": {
+              "domain": "https://uksouth.azuredatabricks.net",
+              "accessToken": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                  "referenceName": "[parameters('akv_name')]",
+                  "type": "LinkedServiceReference"
+                },
+                "secretName": "DataBrickAT"
+              },
+              "newClusterNodeType": "Standard_DS3_v2",
+              "newClusterNumOfWorker": "1",
+              "newClusterVersion": "5.4.x-scala2.11"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/', parameters('akv_name'))]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "type": "linkedServices",
+          "name": "[parameters('akv_name')]",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Azure Key Vault Linked Service"
+          },
+          "properties": {
+            "description": "Azure Key Vault that is used to store all secure password values.",
+            "type": "AzureKeyVault",
+            "typeProperties": {
+              "baseUrl": "[concat('https://', parameters('akv_name'), '.vault.azure.net/')]"
+            }
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "name": "CRM2013SQLOnPremise",
+          "type": "integrationRuntimes",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "CRM 2013 SQL On Premise Integration Runtime"
+          },
+          "properties": {
+            "type": "SelfHosted",
+            "typeProperties": {}
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Databricks/workspaces",
+      "name": "[parameters('adb_name')]",
+      "location": "uksouth",
+      "tags": {
+        "displayName": "Azure Data Bricks Workspace"
+      },
+      "apiVersion": "2018-04-01",
+      "sku": {
+        "name": "standard"
+      },
+      "properties": {
+        "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('adb_managedRGName'))]"
+      }
+    }
+  ],
+  "outputs": {}
+}
