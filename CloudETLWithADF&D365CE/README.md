@@ -13,6 +13,7 @@ In this deep-dive session, we’ll look at how Azure Data Factory can be used to s
 * **ADFImport-UpdateparentcustomeridField.zip** - Zip file containing the Microsoft Flow that imports data into the **Contact** Customer field.
 * **D365CE ADF Transformation.py** - Python transformation script used by Azure Data Bricks as part of the sample.
 * **D365CEADFDEMO_MSCRM.zip** - ZIP file that contains the SQL Server backup (.bak) of the CRM 2013 organization demoed in the talk, containing all sample data.
+* **Cloud ETL with Azure Data Factory & Dynamics 365 Customer Engagement.pdf** - PDF version of the talks PowerPoint presentation.
 
 ## Using the Samples ##
 
