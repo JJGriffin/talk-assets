@@ -1,0 +1,65 @@
+/*
+    Generate FetchXML Query Results M Function
+    Required Parameters:
+        crmURL = The URL of your CRM/D365CE instance e.g. https://mycrm.crm11.dynamics.com
+        entityName = The OData entity name that you are querying.
+        query = The FetchXML query to execute. This should NOT include the top level <fetch> node, but only all subsequent nodes with double quotes escaped e.g. <entity name=""incident""><all-attributes /></entity>
+    Credits: Big thanks to the Power Query Builder tool (https://crmchartguy.com/power-query-builder/) and Keith Mescha/Sonoma Partners Power BI Accelerator
+             for figuring out the paging issue. Portions of the auto-generated code from the above tool is utilised within this function.
+*/
+
+
+
+let
+    Func = (crmURL as text,entityName as text,query as text) =>
+let
+    FullURL = Text.Combine({crmURL, "/api/data/v9.1/", entityName},""),
+    QueryAll = (z as text, x as number) =>
+    let
+                Source = Json.Document(Web.Contents(FullURL,
+                        [
+                            Headers=
+                                [
+                               #"Prefer"="odata.include-annotations=Microsoft.Dynamics.CRM.fetchxmlpagingcookie"
+                                ],
+                            Query=
+                                [
+                                fetchXml="<fetch distinct=""True"" page=""" & Text.From(x) & """ paging-cookie=""" & z & """>" & query & "</fetch>"
+                                ]
+                        ]
+                    )
+                ),
+    Paging = try Xml.Document(Source[#"@Microsoft.Dynamics.CRM.fetchxmlpagingcookie"]) otherwise null,
+    Retrieve = if Paging <> null 
+                then List.Combine({Source[value],@QueryAll(Text.Replace(Text.Replace(Text.Replace(Uri.Parts("http://a.b?d=" & Uri.Parts("http://a.b?d=" & Paging{0}[Attributes]{1}[Value])[Query][d])[Query][d], ">", "&gt;"), "<", "&lt;"), """", "&quot;"), x + 1)})
+                else Source[value]
+    in 
+        Retrieve,
+    GenerateEmptyTable = (query as text) =>
+    let
+            XML = Xml.Document(query),
+            #"Expanded Value" = Table.ExpandTableColumn(XML, "Value", {"Name", "Namespace", "Value", "Attributes"}, {"Value.Name", "Value.Namespace", "Value.Value", "Value.Attributes"}),
+            #"Expanded Value.Value" = Table.ExpandTableColumn(#"Expanded Value", "Value.Value", {"Name", "Namespace", "Value", "Attributes"}, {"Value.Value.Name", "Value.Value.Namespace", "Value.Value.Value", "Value.Value.Attributes"}),
+            #"Expanded Value.Attributes" = Table.ExpandTableColumn(#"Expanded Value.Value", "Value.Attributes", {"Name", "Namespace", "Value"}, {"Value.Attributes.Name", "Value.Attributes.Namespace", "Value.Attributes.Value"}),
+            #"Filtered Rows" = Table.SelectRows(#"Expanded Value.Attributes", each ([Value.Attributes.Name] = "name")),
+            #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{"Name", "Namespace", "Value.Name", "Value.Namespace", "Value.Value.Name", "Value.Value.Namespace", "Value.Value.Value", "Value.Value.Attributes", "Value.Attributes.Name", "Value.Attributes.Namespace", "Attributes"}),
+            #"Transposed Table" = Table.Transpose(#"Removed Columns"),
+            #"Promote Headers" = Table.PromoteHeaders(#"Transposed Table", [PromoteAllScalars=true]),
+            #"Added Custom" = Table.AddColumn(#"Promote Headers", "@odata.etag", each ""),
+            #"Reordered Columns" = Table.ReorderColumns(#"Added Custom", List.Sort(Table.ColumnNames(#"Added Custom"), Order.Ascending))
+    in
+        #"Reordered Columns",
+    List = QueryAll("",1),
+    Table = if List.IsEmpty(List)
+        then GenerateEmptyTable(query)
+        else #"D365CEData",
+    #"D365CEData" = Table.FromList(List, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+    Expand = Table.ExpandRecordColumn( #"D365CEData", "Column1", Record.FieldNames(Table.Column(#"D365CEData", "Column1"){0})),
+    D365CE = Table.ReorderColumns(Expand, List.Sort(Table.ColumnNames(Expand), Order.Ascending)),
+    Results = if List.IsEmpty(List)
+        then Table
+        else D365CE
+    in
+        Results
+    in 
+        Func
