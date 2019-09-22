@@ -116,15 +116,44 @@ namespace D365CE.CustomPricingTalk
             bool pricingLocked = CheckIfPricingLocked(e1, service, tracing);
             if (pricingLocked == false)
             {
-                //Check to see if the product is being sold below cost price - if so, throw an error
 
-                decimal cp;
-                decimal sp;
+                //If Write-In Product, then we need to check to ensure it is not being sold underneath the value specified in the price list
 
-                //Obtain the correct Discount and Freight Amounts for the product record
+                bool isWriteIn = e1.GetAttributeValue<bool>("isproductoverridden");
+                Money ppu = e1.GetAttributeValue<Money>("priceperunit");
+
+                if (isWriteIn == true)
+                {
+                    tracing.Trace("Existing product record detected, checking Price List cost price value...");
+                    bool isUnderCostPrice = CheckLineItemCostPrice(e1, service, tracing);
+                    if (isUnderCostPrice == true)
+                    {
+                        throw new InvalidPluginExecutionException("You are attempting to sell this product record below its listed cost price value. Please update the record to ensure that it is equal or higher than its price list value.");
+                    }
+                }
+
+                //Obtain the correct Discount and Freight Amounts for the product record.
+                //As Opportunity entity does not have Ship To Address values, we default to £25 instead.
 
                 Money da = CalculateLineItemDiscount(e1, service, tracing);
-                Money fa = CalculateLineItemFreight(e1, service, tracing);
+                Money fa = new Money(25);
+
+                if(e1.LogicalName != "opportunityproduct")
+                {
+                    fa = CalculateLineItemFreight(e1, service, tracing);
+                }
+                
+                //Set all required amounts on the line item record.
+
+                //Amount
+                //Extended Amount
+                //Manual Discount Amount
+                //Freight Amount (custom field)
+                //Tax
+
+                
+
+
 
             }
 
@@ -207,7 +236,7 @@ namespace D365CE.CustomPricingTalk
 
             //Get the city value - if NULL, then we default to Freight amount of £25
 
-            string city = psd.GetAttributeValue<string>("shipto_city0");
+            string city = psd.GetAttributeValue<string>("shipto_city");
 
             if (city != null)
             {
@@ -311,6 +340,79 @@ namespace D365CE.CustomPricingTalk
                     return pe;
             }
         }
+        private static bool CheckLineItemCostPrice(Entity lineItem, IOrganizationService service, ITracingService tracing)
+        {
+            bool underCostPrice = false;
+
+            //Retrieve parent sales document record and its associated Price List ID value
+            //Use helper methods to retrieve the entity and lookup names we need and obtain ID for this record.
+            string peName = GetProductEntityName(lineItem.LogicalName);
+            string peIDName = GetProductEntityIDName(lineItem.LogicalName);
+            EntityReference peID = lineItem.GetAttributeValue<EntityReference>(peIDName);
+            Entity psd = new Entity();
+            psd = service.Retrieve(peName, peID.Id, new ColumnSet("pricelevelid"));
+
+            //Get the Price List ID value - if NULL, then we throw an error, as this should be there
+
+            EntityReference pl = psd.GetAttributeValue<EntityReference>("pricelevelid");
+
+            if (pl != null)
+            {
+                //Query the Price List Item entity, using the Price List ID and Product ID field from the line item.
+                //Have to use QueryExpression here, as we are filtering on multiple fields.
+
+                QueryExpression qe = new QueryExpression("productpricelevel");
+                qe.ColumnSet.AddColumn("amount");
+
+                ConditionExpression condition1 = new ConditionExpression("pricelevelid", ConditionOperator.Equal, pl);
+                ConditionExpression condition2 = new ConditionExpression("productid", ConditionOperator.Equal, lineItem.GetAttributeValue<EntityReference>("productid").Id);
+
+                FilterExpression filter1 = new FilterExpression();
+                filter1.Conditions.Add(condition1);
+                filter1.Conditions.Add(condition2);
+
+                qe.Criteria = filter1.AddFilter(LogicalOperator.And);
+
+                EntityCollection pliEntity = service.RetrieveMultiple(qe);
+
+                //Get the Amount value from the Price List Item record
+                //Always grab the top record only - only 1 record should ever be present, due to application limits.
+
+                if (pliEntity.TotalRecordCount == 1)
+                {
+                    //Get the appropriate values from the line item and price list item record and perform the comparison.
+                    Money a = pliEntity[0].GetAttributeValue<Money>("amount");
+                    Money liUP = lineItem.GetAttributeValue<Money>("priceperunit");
+                    tracing.Trace("Price List Amount = " + a.Value.ToString() + ", Line Item Price Per Unit = " + liUP.Value.ToString());
+
+                    if (liUP.Value < a.Value)
+                    {
+                        tracing.Trace("Product is being sold under cost!");
+                        underCostPrice = true;
+                    }
+                    else
+                    {
+                        tracing.Trace("Product is being sold at or over cost!");
+                    }
+                }
+
+                //Throw an error if nothing is there - having come this far, having nothing here indicates something has gone wrong.
+
+                else
+                {
+                    throw new InvalidPluginExecutionException("A problem occurred when retrieving an original amount for an existing line item record.");
+
+                }
+            }
+
+            else
+            {
+                throw new InvalidPluginExecutionException("Could not locate a price list ID when attempting to calculate whether this line item is being sold under cost.");
+            }
+
+            return underCostPrice;
+        }
+
         private static bool CheckIfPricingLocked(Entity entity, IOrganizationService service, ITracingService tracing)
         {
             tracing.Trace("Determining whether prices are locked or not...");
