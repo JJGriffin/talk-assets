@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
 using System.ServiceModel;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
@@ -120,7 +122,6 @@ namespace D365CE.CustomPricingTalk
                 //If Write-In Product, then we need to check to ensure it is not being sold underneath the value specified in the price list
 
                 bool isWriteIn = e1.GetAttributeValue<bool>("isproductoverridden");
-                Money ppu = e1.GetAttributeValue<Money>("priceperunit");
 
                 if (isWriteIn == true)
                 {
@@ -142,25 +143,119 @@ namespace D365CE.CustomPricingTalk
                 {
                     fa = CalculateLineItemFreight(e1, service, tracing);
                 }
-                
+
                 //Set all required amounts on the line item record.
+                //First, obtain the values needed from the product record.
 
-                //Amount
-                //Extended Amount
-                //Manual Discount Amount
-                //Freight Amount (custom field)
-                //Tax
+                decimal ppu = e1.GetAttributeValue<Money>("priceperunit")?.Value ?? 0;
+                decimal q = e1.GetAttributeValue<decimal>("quantity");
+                decimal t = e1.GetAttributeValue<Money>("tax")?.Value ?? 0;
 
-                
+                //The, it's time to calculate!
 
+                //Amount = Price Per Unit * Quantity
+                decimal a = ppu * q;
+                e1["baseamount"] = new Money(a);
+                tracing.Trace("Amount = " + a.ToString());
+                //Manual Discount
+                e1["manualdiscountamount"] = da;
+                tracing.Trace("Discount Amount = " + da.ToString());
+                //Freight Amount
+                e1["jjg_freightamount"] = fa;
+                tracing.Trace("Freight Amount = " + fa.ToString());
+                //Extended Amount = (Amount - Manual Discount) + Freight Amount + Tax
+                decimal ea = (a - da.Value) + fa.Value + t;
+                e1["extendedamount"] = new Money(ea);
+                tracing.Trace("Extended Amount = " + ea.ToString());
 
+                //Actually update the record
+
+                service.Update(e1);
+                tracing.Trace(e1.LogicalName + " updated successfully!");
 
             }
 
         }
         private static void CalculateSalesDocument(EntityReference salesDoc, IOrganizationService service, ITracingService tracing)
         {
+            //Only calculate record if it is in an Active state
 
+            Entity e = service.Retrieve(salesDoc.LogicalName, salesDoc.Id, new ColumnSet("statecode"));
+            OptionSetValue statecode = (OptionSetValue)e["statecode"];
+            if (statecode.Value == 0)
+            {
+
+                //Assign correct entity name for related Product records
+
+                string pe = GetProductEntityName(salesDoc.LogicalName);
+                string peID = salesDoc.LogicalName + "id";
+
+                //Build the query to return all line items for the related Sales Document
+
+                QueryExpression query = new QueryExpression(pe);
+                query.ColumnSet.AddColumns("baseamount", "manualdiscountamount", "jjg_discountpercent", "jjg_freightamount", "tax", "extendedamount");
+                query.Criteria.AddCondition(peID, ConditionOperator.Equal, salesDoc.Id);
+                EntityCollection ec = service.RetrieveMultiple(query);
+
+                //Iterate through and total up values for each line item
+                //Also create list to store discount percent values (used later)
+
+                decimal da = 0;
+                decimal d = 0;
+                decimal fa = 0;
+                decimal t = 0;
+                decimal ta = 0;
+
+                List<List<int>> l = new List<List<int>>();
+
+                for (int i = 0; i < ec.Entities.Count; i++)
+                {
+                    Money totalAmount = ec.Entities[i].GetAttributeValue<Money>("baseamount");
+                    Money totalDiscount = ec.Entities[i].GetAttributeValue<Money>("manualdiscountamount");
+                    Money totalFreightAmount = ec.Entities[i].GetAttributeValue<Money>("jjg_freightamount");
+                    Money totalTax = ec.Entities[i].GetAttributeValue<Money>("tax");
+                    Money totalExtendedAmount = ec.Entities[i].GetAttributeValue<Money>("extendedamount");
+
+                    //If no value in the returned fields, default to 0
+
+                    da += totalAmount?.Value ?? 0;
+                    d += totalDiscount?.Value ?? 0;
+                    fa += totalFreightAmount?.Value ?? 0;
+                    t += totalTax?.Value ?? 0;
+                    ta += totalExtendedAmount?.Value ?? 0;
+
+                    l.Add(new List<int> { ec.Entities[i].GetAttributeValue<int>("jjg_discountpercent")});
+                }
+
+                //For discounts, we figure out an average (arithmetic mean) percentage discount, based on each line item returned.
+
+                double dp = Math.Round(l.Average(inner => inner[0]), 2, MidpointRounding.AwayFromZero);
+
+                //Update entity with required values
+
+                e["totallineitemamount"] = new Money(da);
+                tracing.Trace("Total Detail Amount = " + da.ToString());
+                e["discountpercentage"] = dp;
+                tracing.Trace("Invoice Discount (%) = " + dp.ToString());
+                e["discountamount"] = new Money(d);
+                tracing.Trace("Invoice Discount Amount = " + d.ToString());
+                //Pre-Freight Amount = Detail Amount - Discount
+                decimal pfa = da - d;
+                e["totalamountlessfreight"] = new Money(pfa);
+                tracing.Trace("Total Pre-Freight Amount = " + pfa.ToString());
+                e["freightamount"] = new Money(fa);
+                tracing.Trace("Total Freight Amount = " + fa.ToString());
+                e["totaltax"] = new Money(t);
+                tracing.Trace("Total Tax = " + t.ToString());
+                e["totalamount"] = new Money(ta);
+                tracing.Trace("Total Amount = " + ta.ToString());
+
+                //Actually update the sales document
+
+                service.Update(e);
+                tracing.Trace(e.LogicalName + " updated successfully!");
+
+            }
         }
         private static Money CalculateLineItemDiscount(Entity lineItem, IOrganizationService service, ITracingService tracing)
         {
