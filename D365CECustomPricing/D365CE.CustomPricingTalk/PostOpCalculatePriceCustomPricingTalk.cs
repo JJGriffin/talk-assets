@@ -228,8 +228,14 @@ namespace D365CE.CustomPricingTalk
                 }
 
                 //For discounts, we figure out an average (arithmetic mean) percentage discount, based on each line item returned.
+                //We only calculate this if there are related line item records, otherwise, set to 0.
 
-                double dp = Math.Round(l.Average(inner => inner[0]), 2, MidpointRounding.AwayFromZero);
+                double dp = 0;
+
+                if (ec.Entities.Count != 0)
+                {
+                    dp = Math.Round(l.Average(inner => inner[0]), 2, MidpointRounding.AwayFromZero);
+                }
 
                 //Update entity with required values
 
