@@ -24,7 +24,6 @@ namespace D365CE.CustomPricingTalk
 
             if (context.ParentContext != null
                 && context.ParentContext.ParentContext != null
-                && context.ParentContext.ParentContext != null
                 && context.ParentContext.ParentContext.ParentContext != null
                 && context.ParentContext.ParentContext.ParentContext.SharedVariables.ContainsKey("CustomPrice")
                 && (bool)context.ParentContext.ParentContext.ParentContext.SharedVariables["CustomPrice"])
@@ -300,7 +299,7 @@ namespace D365CE.CustomPricingTalk
                         //Once retrieved, we then apply our calculation.
                         //Have to convert Discount Percentage to a decimal, so it can be used in calculations.
                         decimal dpDec = new decimal((int)dp);
-                        da = new Money(ba.Value - (ba.Value * dpDec / 100));
+                        da = new Money(ba.Value * dpDec / 100);
                         tracing.Trace("Discount Amount = " + da.Value.ToString());
                     }
                     else
