@@ -279,7 +279,7 @@ namespace D365CE.CustomPricingTalk
                 //Have to convert Discount Percentage to a decimal, so it can be used in calculations.
                 decimal dpDec = new decimal((int)dp);
                 //Then, we can obtain the discounted Base Amount value
-                da = new Money(ba.Value - (ba.Value * dpDec / 100));
+                da = new Money(ba.Value * dpDec / 100);
                 tracing.Trace("Discount Amount = " + da.Value.ToString());
             }
             //Otherwise, we need to check the parent sales entity instead and use whatever is listed there
