@@ -119,11 +119,11 @@ namespace D365CE.CustomPricingTalk
             if (pricingLocked == false)
             {
 
-                //If Write-In Product, then we need to check to ensure it is not being sold underneath the value specified in the price list
+                //If Existing Product, then we need to check to ensure it is not being sold underneath the value specified in the price list
 
                 bool isWriteIn = e1.GetAttributeValue<bool>("isproductoverridden");
 
-                if (isWriteIn == true)
+                if (isWriteIn == false)
                 {
                     tracing.Trace("Existing product record detected, checking Price List cost price value...");
                     bool isUnderCostPrice = CheckLineItemCostPrice(e1, service, tracing);
@@ -465,14 +465,19 @@ namespace D365CE.CustomPricingTalk
                 QueryExpression qe = new QueryExpression("productpricelevel");
                 qe.ColumnSet.AddColumn("amount");
 
-                ConditionExpression condition1 = new ConditionExpression("pricelevelid", ConditionOperator.Equal, pl);
+                ConditionExpression condition1 = new ConditionExpression("pricelevelid", ConditionOperator.Equal, pl.Id);
                 ConditionExpression condition2 = new ConditionExpression("productid", ConditionOperator.Equal, lineItem.GetAttributeValue<EntityReference>("productid").Id);
 
                 FilterExpression filter1 = new FilterExpression();
                 filter1.Conditions.Add(condition1);
-                filter1.Conditions.Add(condition2);
 
-                qe.Criteria = filter1.AddFilter(LogicalOperator.And);
+                FilterExpression filter2 = new FilterExpression();
+                filter2.Conditions.Add(condition2);
+
+                qe.Criteria.AddFilter(filter1);
+                qe.Criteria.AddFilter(filter2);
+
+                qe.PageInfo.ReturnTotalRecordCount = true;
 
                 EntityCollection pliEntity = service.RetrieveMultiple(qe);
 
