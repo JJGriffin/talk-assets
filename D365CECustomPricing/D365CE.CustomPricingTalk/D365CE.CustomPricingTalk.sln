@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "D365CE.CustomPricingTalk", "D365CE.CustomPricingTalk.csproj", "{436D9CE9-2E8B-47CB-9473-9868A030A1F1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "D365CE.CustomPricingTalk.Complete", "D365CE.CustomPricingTalk.Complete.csproj", "{436D9CE9-2E8B-47CB-9473-9868A030A1F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
