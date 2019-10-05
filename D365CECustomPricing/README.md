@@ -1,4 +1,4 @@
-# Leveraging Power BI with Dynamics 365 Customer Engagement #
+# Implementing a Custom Pricing Engine within Dynamics 365 Customer Engagement #
 
 ## Abstract ##
 
