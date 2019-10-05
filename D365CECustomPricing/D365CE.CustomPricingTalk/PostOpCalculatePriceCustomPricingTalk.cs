@@ -30,8 +30,8 @@ namespace D365CE.CustomPricingTalk
                 return;
 
             // The InputParameters collection contains all the data passed in the message request.            
-            if (context.InputParameters.Contains("Target") &&
-                context.InputParameters["Target"] is EntityReference)
+            if (context.InputParameters.Contains("Target") 
+                && context.InputParameters["Target"] is EntityReference)
             {
                 // Obtain the target entity from the input parmameters.
                 EntityReference entity = (EntityReference)context.InputParameters["Target"];
@@ -82,6 +82,31 @@ namespace D365CE.CustomPricingTalk
                     tracing.Trace("CalculatePrice: {0}", ex.ToString());
                     throw;
                 }
+            }
+
+            //Currently appears to be some bug/issue calculating Quote Line Extended Amounts when generating from an Opportunity
+            //The code that follows deals with this issue, via an additiona plug-in step on Create of a Quote Line item.
+
+            else if (context.InputParameters.Contains("Target") 
+                     && context.InputParameters["Target"] is Entity)
+            {
+                // Obtain the target entity from the input parmameters.
+                Entity entity = (Entity)context.InputParameters["Target"];
+
+                if (entity.LogicalName == "quotedetail")
+                {
+                    //Add shared variable, used earlier to check for infinite loops
+                    context.SharedVariables.Add("CustomPrice", true);
+                    context.ParentContext.SharedVariables.Add("CustomPrice", true);
+
+                    //Get a reference to the organization service - used later
+                    IOrganizationServiceFactory serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
+                    IOrganizationService service = serviceFactory.CreateOrganizationService(context.UserId);
+
+                    tracing.Trace("Calculating " + entity.LogicalName + " as a line item calculation, which has just been created.");
+                    CalculateLineItem(entity, service, tracing);
+                }
+
             }
         }
         private static bool CheckIfNotValidEntity(EntityReference entity)
@@ -175,6 +200,78 @@ namespace D365CE.CustomPricingTalk
 
             }
 
+        }
+        private static void CalculateLineItem(Entity lineItem, IOrganizationService service, ITracingService tracing)
+        {
+            //Retrieve all required fields, including custom fields, from the Product record
+            //For this example, we return all fields; this is NOT recommended for Production environments
+            tracing.Trace("Retrieving " + lineItem.LogicalName + " record...");
+            Entity e1 = new Entity();
+            e1 = service.Retrieve(lineItem.LogicalName, lineItem.Id, new ColumnSet(true));
+            tracing.Trace("Retrieved " + lineItem.LogicalName + " record with ID " + e1.Id.ToString());
+
+            //If Order Line or Invoice Line, we need to check the related Order/Invoice to determine whether pricing is locked.
+            //If locked, then no calculation takes place, to prevent errors.
+
+            bool pricingLocked = CheckIfPricingLocked(e1, service, tracing);
+            if (pricingLocked == false)
+            {
+
+                //If Existing Product, then we need to check to ensure it is not being sold underneath the value specified in the price list
+
+                bool isWriteIn = e1.GetAttributeValue<bool>("isproductoverridden");
+
+                if (isWriteIn == false)
+                {
+                    tracing.Trace("Existing product record detected, checking Price List cost price value...");
+                    bool isUnderCostPrice = CheckLineItemCostPrice(e1, service, tracing);
+                    if (isUnderCostPrice == true)
+                    {
+                        throw new InvalidPluginExecutionException("You are attempting to sell this product record below its listed cost price value. Please update the record to ensure that it is equal or higher than its price list value.");
+                    }
+                }
+
+                //Obtain the correct Discount and Freight Amounts for the product record.
+                //As Opportunity entity does not have Ship To Address values, we default to £25 instead.
+
+                Money da = CalculateLineItemDiscount(e1, service, tracing);
+                Money fa = new Money(25);
+
+                if (e1.LogicalName != "opportunityproduct")
+                {
+                    fa = CalculateLineItemFreight(e1, service, tracing);
+                }
+
+                //Set all required amounts on the line item record.
+                //First, obtain the values needed from the product record.
+
+                decimal ppu = e1.GetAttributeValue<Money>("priceperunit")?.Value ?? 0;
+                decimal q = e1.GetAttributeValue<decimal>("quantity");
+                decimal t = e1.GetAttributeValue<Money>("tax")?.Value ?? 0;
+
+                //The, it's time to calculate!
+
+                //Amount = Price Per Unit * Quantity
+                decimal a = ppu * q;
+                e1["baseamount"] = new Money(a);
+                tracing.Trace("Amount = " + a.ToString());
+                //Manual Discount
+                e1["manualdiscountamount"] = da;
+                tracing.Trace("Discount Amount = " + da.ToString());
+                //Freight Amount
+                e1["jjg_freightamount"] = fa;
+                tracing.Trace("Freight Amount = " + fa.ToString());
+                //Extended Amount = (Amount - Manual Discount) + Freight Amount + Tax
+                decimal ea = (a - da.Value) + fa.Value + t;
+                e1["extendedamount"] = new Money(ea);
+                tracing.Trace("Extended Amount = " + ea.ToString());
+
+                //Actually update the record
+
+                service.Update(e1);
+                tracing.Trace(e1.LogicalName + " updated successfully!");
+
+            }
         }
         private static void CalculateSalesDocument(EntityReference salesDoc, IOrganizationService service, ITracingService tracing)
         {
