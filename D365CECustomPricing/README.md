@@ -8,7 +8,10 @@ For years, it has been possible to override the default behaviour for sales enti
 
 * **CustomPricing_Before_1_0_0_0.zip** - Unmanaged solution containing all functional components needed to work through the sample.
 * **CustomPricing_Before_1_0_0_0_managed.zip** - Managed solution containing all functional components needed to work through the sample.
-* **D365CE.CustomPricingTalk** - Visual Studio 2019 solution, containing the complete custom pricing plug-in solution demoed during the session.
+* **CustomPricing_After_1_0_0_1.zip** - Unmanaged solution containing the finished sample.
+* **CustomPricing_After_1_0_0_1_managed.zip** - Managed solution containing the finished sample.
+* **D365CE.CustomPricingTalk** - Visual Studio 2019 solution, containing the starter and complete custom pricing plug-in solution demonstrated during the session.
+* **FreightAmount.csv** - Data file for import into D365CE, containing a list of Freight Amount values and cities, used as part of the example solution.
 
 ## Using the Samples ##
 
