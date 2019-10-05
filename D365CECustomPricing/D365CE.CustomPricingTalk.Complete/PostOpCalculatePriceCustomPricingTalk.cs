@@ -127,7 +127,6 @@ namespace D365CE.CustomPricingTalk
                     return true;
             }
         }
-
         private static void CalculateLineItem(EntityReference lineItem, IOrganizationService service, ITracingService tracing)
         {
             //Retrieve all required fields, including custom fields, from the Product record
