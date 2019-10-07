@@ -6,6 +6,7 @@ For years, it has been possible to override the default behaviour for sales enti
 
 ## What's Here ##
 
+* **Implementing a Custom Pricing Engine within Dynamics 365 Customer Engagement.pdf** - PDF of the slide decks from the session.
 * **CustomPricing_Before_1_0_0_0.zip** - Unmanaged solution containing all functional components needed to work through the sample.
 * **CustomPricing_Before_1_0_0_0_managed.zip** - Managed solution containing all functional components needed to work through the sample.
 * **CustomPricing_After_1_0_0_1.zip** - Unmanaged solution containing the finished sample.
