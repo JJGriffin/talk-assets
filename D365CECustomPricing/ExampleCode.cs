@@ -1,107 +1,33 @@
-# Implementing a Custom Pricing Engine within Dynamics 365 Customer Engagement #
+//Boilerplate
 
-## Abstract ##
+//Obtain the execution context from the service provider.
+IPluginExecutionContext context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
+//Extract the tracing service for use in debugging sandboxed plug-ins
+ITracingService tracing = (ITracingService)serviceProvider.GetService(typeof(ITracingService));
+tracing.Trace("Tracing implemented successfully!");
 
-For years, it has been possible to override the default behaviour for sales entity calculations within Dynamics CRM, and even, today this functionality is still present in Dynamics 365 for Customer Engagement (D365CE) and - arguably - more relevant than ever. For organisations who are looking to factor in custom fields, highly bespoke calculations or other non-standard business logic when producing sales quotations, orders or invoices, developing a plug-in for the CalculatePrice message remains the supported and cleanest way to achieve this requirement. This session is aimed to introduce the functionality that a custom pricing plug-in can bring to the table, and attendees should walk away from the session understanding how to develop a custom pricing solution from start to finish. Although existing C# developers with CRM/D365CE experience will gain the most from this session, no previous knowledge is assumed, and this session will be an excellent starting point for those looking to get into D365CE development within a specific and highly business relevant area.
+//CheckIfNotValidEntity Method
 
-## What's Here ##
+private static bool CheckIfNotValidEntity(EntityReference entity)
+{
+	switch (entity.LogicalName)
+    {
+        case "opportunity":
+        case "quote":
+        case "salesorder":
+        case "invoice":
+        case "opportunityproduct":
+        case "invoicedetail":
+        case "quotedetail":
+        case "salesorderdetail":
+			return false;
+Â 
+        default:
+            return true;
+    }
+}
 
-* **Implementing a Custom Pricing Engine within Dynamics 365 Customer Engagement.pdf** - PDF of the slide decks from the session.
-* **CustomPricing_Before_1_0_0_0.zip** - Unmanaged solution containing all functional components needed to work through the sample.
-* **CustomPricing_Before_1_0_0_0_managed.zip** - Managed solution containing all functional components needed to work through the sample.
-* **CustomPricing_After_1_0_0_1.zip** - Unmanaged solution containing the finished sample.
-* **CustomPricing_After_1_0_0_1_managed.zip** - Managed solution containing the finished sample.
-* **D365CE.CustomPricingTalk** - Visual Studio 2019 solution, containing the starter and complete custom pricing plug-in solution demonstrated during the session.
-* **FreightAmount.csv** - Data file for import into D365CE, containing a list of Freight Amount values and cities, used as part of the example solution.
-* **ExampleCode.vs** - Includes example code snippets and methods used for the sample.
-
-## Using the Samples ##
-
-### Overview ###
-
-The goal of the sample is to provide a complete, end-to-end solution that achieves the following objectives:
-
-* Allows for Product Line item discounts to be applied, pre tax, by expressing a percentage at both Sales document & line item level.
-* Calculates the freight amount for each product line item, based on the location of the parent sales document record.
-* Displays an error message to a user if attempting to sell a product line item below cost price.
-
-The requirements are achieved using a mixture of functional customisation and, primarily, a C# plug-in assembly, to perform all pricing calculations at runtime.
-
-#### Pre-Requisites ####
-
-To work with this sample, you must have:
-
-* A D365CE Online tenant (v9.x), ideally with sample data installed and at least 1 active price list.
-* Visual Studio 2015/2017/2019, with .NET Framework v4.7.1
-* A basic familiarity in working with D365CE solutions, instance management and data import.
-
-### Instructions ###
-
-1. Within D365CE, navigate to the **Systems Settings** area within the classic interface and open the **Sales** tab. Verify that the **Set pricing calculation preference** setting is set to **No**. With this option enabled, any custom code uploaded will not execute.
-2. Deploy a copy of the unmanaged/managed **CustomPricing_Before** solution to your D365CE environment. After installation, you should be able to access a new app called **Custom Pricing**
-3. Import the **FreighAmount.csv** data file into the **Freight Amount** custom entity, using instructions outlined in [this article](https://docs.microsoft.com/en-us/dynamics365/customerengagement/on-premises/basics/import-accounts-leads-other-data)
-4. Clone the repository and open the **D365CE.CustomPricingTalk.Start** solution. Build the project and verify that all NuGet dependencies are downloaded successfully.
-5. To deploy assemblies to Dynamics 365 Customer Engagement, they must be signed using a Strong Name Key (.snk) file. Follow the instructions in [this article](https://docs.microsoft.com/en-us/dotnet/standard/assembly/sign-strong-name). A password is recommended, but not required, for this.
-6. With the **PostOpCalculatePriceCustomPricingTalk.cs** file open, remove lines 30-82 of the code, which should represent the following:
-
-```cs
-            // The InputParameters collection contains all the data passed in the message request.            
-            if (context.InputParameters.Contains("Target")
-                && context.InputParameters["Target"] is EntityReference)
-            {
-                // Obtain the target entity from the input parmameters.
-                EntityReference entity = (EntityReference)context.InputParameters["Target"];
-
-                // Verify that the target entity represents an appropriate entity.                
-                if (CheckIfNotValidEntity(entity))
-                    return;
-
-                try
-                {
-                    //Add shared variable, used earlier to check for infinite loops
-                    context.SharedVariables.Add("CustomPrice", true);
-                    context.ParentContext.SharedVariables.Add("CustomPrice", true);
-
-                    //Get a reference to the organization service - used later
-                    IOrganizationServiceFactory serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
-                    IOrganizationService service = serviceFactory.CreateOrganizationService(context.UserId);
-
-                    //TODO: Insert custom pricing logic here
-                    //As part of this, you can either: 
-                    //Apply the same custom pricing logic to all sales entities (as this example will do)
-                    //Use a switch statement to process custom logic for each entity individually e.g. for Opportunity:
-
-                    //switch (entity.LogicalName)
-                    //{
-                    //case "opportunity":
-                    //    DoSomethingHere();
-                    //    return;
-                    //}
-
-                    //List of available entities as part of this:
-                    //opportunity, opportunityproduct, quote, quotedetail, salesorder, salesorderdetail, invoice, invoicedetail
-
-                    //For further details, please refer to the following articles:
-                    //https://docs.microsoft.com/en-us/dynamics365/customer-engagement/developer/use-custom-pricing-products
-                    //https://docs.microsoft.com/en-us/dynamics365/customer-engagement/developer/sample-calculate-price-plugin
-                }
-
-                catch (FaultException<OrganizationServiceFault> ex)
-                {
-                    tracing.Trace("CalculatePrice: {0}", ex.ToString());
-                    throw new InvalidPluginExecutionException("An error occurred in the Calculate Price plug-in.", ex);
-                }
-
-                catch (Exception ex)
-                {
-                    tracing.Trace("CalculatePrice: {0}", ex.ToString());
-                    throw;
-                }
-            }
-```
-7. The sample relies on several helper methods to work successfully. On line 125, hit the **Return** key twice and then copy/paste in the following C# methods:
-
-```cs
+//GetProductEntityName Method
 
 private static string GetProductEntityName(string entity)
 {
@@ -145,6 +71,8 @@ private static string GetProductEntityName(string entity)
     }
 }
 
+//GetProductEntityIDName Method
+
 private static string GetProductEntityIDName(string entity)
 {
 	string pe = "";
@@ -168,6 +96,8 @@ private static string GetProductEntityIDName(string entity)
             return pe;
     }
 }
+
+//CheckLineItemCostPrice Method
 
 private static bool CheckLineItemCostPrice(Entity lineItem, IOrganizationService service, ITracingService tracing)
 {
@@ -247,6 +177,8 @@ private static bool CheckLineItemCostPrice(Entity lineItem, IOrganizationService
 	return underCostPrice;
 }
 
+//CheckIfPricingLocked Method
+
 private static bool CheckIfPricingLocked(Entity entity, IOrganizationService service, ITracingService tracing)
 {
 	tracing.Trace("Determining whether prices are locked or not...");
@@ -291,10 +223,7 @@ private static bool CheckIfPricingLocked(Entity entity, IOrganizationService ser
 	return pricingLocked;
 }
 
-```
-8. An additional method is required to perform calculation of discount amounts for each product line item. Immediately after the last curly brace from the previous step, hit the **Return** key twice and then paste in the following code:
-
-```cs
+//CalculateLineItemDiscount Method
 
 private static Money CalculateLineItemDiscount(Entity lineItem, IOrganizationService service, ITracingService tracing)
 {
@@ -353,10 +282,7 @@ private static Money CalculateLineItemDiscount(Entity lineItem, IOrganizationSer
 	return da;
 }
 
-```
-9. Likewise, a method is also needed to perform any freight amount calculations required. Immediately after the last curly brace from the previous step, hit the **Return** key twice and then paste in the following code:
-
-```cs
+//CalculateLineItemFreight Method
 
 private static Money CalculateLineItemFreight(Entity lineItem, IOrganizationService service, ITracingService tracing)
 {
@@ -374,7 +300,7 @@ private static Money CalculateLineItemFreight(Entity lineItem, IOrganizationServ
 	Entity psd = new Entity();
 	psd = service.Retrieve(peName, peID.Id, new ColumnSet("shipto_city"));
 
-	//Get the city value - if NULL, then we default to Freight amount of £25
+	//Get the city value - if NULL, then we default to Freight amount of Â£25
 
 	string city = psd.GetAttributeValue<string>("shipto_city");
 
@@ -400,21 +326,18 @@ private static Money CalculateLineItemFreight(Entity lineItem, IOrganizationServ
 
 		else
 		{
-			tracing.Trace("Could not obtain a Freight Amount Value, defaulting to £25");
+			tracing.Trace("Could not obtain a Freight Amount Value, defaulting to Â£25");
 		}
 	}
 	else
 	{
-		tracing.Trace("No Ship To City value supplied for " + psd.LogicalName + " record, defaulting to £25");
+		tracing.Trace("No Ship To City value supplied for " + psd.LogicalName + " record, defaulting to Â£25");
 	}
 
 	return fa;
 }
 
-```
-10. Finally, an additional 3 methods are required to perform all appropriate pricing calculations for each applicable entity. Immediately after the last curly brace from the previous step, hit the **Return** key twice and then paste in the following code:
-
-```cs
+//CalculateLineItem Methods
 
 private static void CalculateLineItem(EntityReference lineItem, IOrganizationService service, ITracingService tracing)
 {
@@ -447,7 +370,7 @@ private static void CalculateLineItem(EntityReference lineItem, IOrganizationSer
 		}
 
 		//Obtain the correct Discount and Freight Amounts for the product record.
-		//As Opportunity entity does not have Ship To Address values, we default to £25 instead.
+		//As Opportunity entity does not have Ship To Address values, we default to Â£25 instead.
 
 		Money da = CalculateLineItemDiscount(e1, service, tracing);
 		Money fa = new Money(25);
@@ -521,7 +444,7 @@ private static void CalculateLineItem(Entity lineItem, IOrganizationService serv
 		}
 
 		//Obtain the correct Discount and Freight Amounts for the product record.
-		//As Opportunity entity does not have Ship To Address values, we default to £25 instead.
+		//As Opportunity entity does not have Ship To Address values, we default to Â£25 instead.
 
 		Money da = CalculateLineItemDiscount(e1, service, tracing);
 		Money fa = new Money(25);
@@ -562,6 +485,8 @@ private static void CalculateLineItem(Entity lineItem, IOrganizationService serv
 
 	}
 }
+
+//CalculateSalesDocument Method
 
 private static void CalculateSalesDocument(EntityReference salesDoc, IOrganizationService service, ITracingService tracing)
 {
@@ -651,10 +576,7 @@ private static void CalculateSalesDocument(EntityReference salesDoc, IOrganizati
 	}
 }
 
-```
-11. With all required methods defined, it is now necessary to return to the **Execute** method from step 6 and add in the remaining code to trigger the appropriate logic. On line 30 of this file, hit the **Return** key and then paste in the following code:
-
-```cs
+//Execute Method Code
 
 // The InputParameters collection contains all the data passed in the message request.            
 if (context.InputParameters.Contains("Target") 
@@ -711,23 +633,27 @@ if (context.InputParameters.Contains("Target")
 	}
 }
 
-```
-12. Right click on your solution and select the **Build** option. Verify that the solution builds successfully. This will generate a .dll file within the **\bin\Debug** folder.
-13. Right click on your solution and select the **Open Folder in File Explorer**. Within the Windows explorer window opens, drill-down into the **packages\Microsoft.CrmSdk.XrmTooling.PluginRegistrationTool.9.1.0.1\tools** folder and run the **PluginRegistration.exe** file.
-14. When the **Plugin Registration Tool** opens, select the **CREATE NEW CONNECTION** option and login to the instance that was accessed earlier.
-15. Using the instructions in [this article](https://docs.microsoft.com/en-us/powerapps/developer/common-data-service/tutorial-write-plug-in#register-plug-in), register the plugin assembly generated in step 12 and then add on the following Plug-in Steps:
-	* CalculatePrice on the invoice entity, on the Post-Operation event, executed synchronously.
-	* CalculatePrice on the invoicedetail entity, on the Post-Operation event, executed synchronously.
-	* CalculatePrice on the opportunity entity, on the Post-Operation event, executed synchronously.
-	* CalculatePrice on the opportunityproduct entity, on the Post-Operation event, executed synchronously.
-	* CalculatePrice on the quote entity, on the Post-Operation event, executed synchronously.
-	* CalculatePrice on the quotedetail entity, on the Post-Operation event, executed synchronously.
-	* CalculatePrice on the salesorder entity, on the Post-Operation event, executed synchronously.
-	* CalculatePrice on the salesorderdetail entity, on the Post-Operation event, executed synchronously.
-	* Create on the quotedetail entity, on the Post-Operation event, executed synchronously.
+//Currently appears to be some bug/issue calculating Quote Line Extended Amounts when generating from an Opportunity
+//The code that follows deals with this issue, via an additiona plug-in step on Create of a Quote Line item.
 
-With the plug-in deployed out, custom pricing logic will now apply and the solution can be tested/experimented with further.
+else if (context.InputParameters.Contains("Target") 
+		 && context.InputParameters["Target"] is Entity)
+{
+	// Obtain the target entity from the input parmameters.
+	Entity entity = (Entity)context.InputParameters["Target"];
 
-## Disclaimer ##
+	if (entity.LogicalName == "quotedetail")
+	{
+		//Add shared variable, used earlier to check for infinite loops
+		context.SharedVariables.Add("CustomPrice", true);
+		context.ParentContext.SharedVariables.Add("CustomPrice", true);
 
-The examples include in this repository are provided "as-is" with no warranty expressed or implied. Please feel free to raise an issue if you encounter any problems, and I will happily take a look, but I can't offer any guarantee of resolution.
+		//Get a reference to the organization service - used later
+		IOrganizationServiceFactory serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
+		IOrganizationService service = serviceFactory.CreateOrganizationService(context.UserId);
+
+		tracing.Trace("Calculating " + entity.LogicalName + " as a line item calculation, which has just been created.");
+		CalculateLineItem(entity, service, tracing);
+	}
+
+}
