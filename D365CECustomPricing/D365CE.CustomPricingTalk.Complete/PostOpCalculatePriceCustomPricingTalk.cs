@@ -109,6 +109,10 @@ namespace D365CE.CustomPricingTalk
 
             }
         }
+        /// <summary>
+        /// Checks to see if the entity logical name is valid for use for the CalculatePrice message and, if so, returns false; else, true.
+        /// </summary>
+        /// <param name="entity">The entity to check</param>
         private static bool CheckIfNotValidEntity(EntityReference entity)
         {
             switch (entity.LogicalName)
@@ -127,6 +131,12 @@ namespace D365CE.CustomPricingTalk
                     return true;
             }
         }
+        /// <summary>
+        /// Performs all appropriate calculations for a line item record, according to custom business logic.
+        /// </summary>
+        /// <param name="lineItem">The line item record to calculate.</param>
+        /// <param name="service">A reference to the IOrganizationService. Required to perform record retrievals.</param>
+        /// <param name="tracing">A reference to the ITracingService. Required for debugging.</param>
         private static void CalculateLineItem(EntityReference lineItem, IOrganizationService service, ITracingService tracing)
         {
             //Retrieve all required fields, including custom fields, from the Product record
@@ -200,6 +210,12 @@ namespace D365CE.CustomPricingTalk
             }
 
         }
+        /// <summary>
+        /// Performs all appropriate calculations for a line item record, according to custom business logic.
+        /// </summary>
+        /// <param name="lineItem">The line item record to calculate.</param>
+        /// <param name="service">A reference to the IOrganizationService. Required to perform record retrievals.</param>
+        /// <param name="tracing">A reference to the ITracingService. Required for debugging.</param>
         private static void CalculateLineItem(Entity lineItem, IOrganizationService service, ITracingService tracing)
         {
             //Retrieve all required fields, including custom fields, from the Product record
@@ -272,6 +288,12 @@ namespace D365CE.CustomPricingTalk
 
             }
         }
+        /// <summary>
+        /// Performs all appropriate calculations for a line item record, according to custom business logic.
+        /// </summary>
+        /// <param name="lineItem">The line item record to calculate.</param>
+        /// <param name="service">A reference to the IOrganizationService. Required to perform record retrievals.</param>
+        /// <param name="tracing">A reference to the ITracingService. Required for debugging.</param>
         private static void CalculateSalesDocument(EntityReference salesDoc, IOrganizationService service, ITracingService tracing)
         {
             //Only calculate record if it is in an Active state
@@ -359,6 +381,12 @@ namespace D365CE.CustomPricingTalk
 
             }
         }
+        /// <summary>
+        /// Calculates the appropriate discount amount to apply to a line item record, and returns this as a monetary value.
+        /// </summary>
+        /// <param name="lineItem">The line item record to calculate the discount for</param>
+        /// <param name="service">A reference to the IOrganizationService. Required to perform record retrievals.</param>
+        /// <param name="tracing">A reference to the ITracingService. Required for debugging.</param>
         private static Money CalculateLineItemDiscount(Entity lineItem, IOrganizationService service, ITracingService tracing)
         {
             tracing.Trace("Calculating discount for line item record...");
@@ -415,6 +443,12 @@ namespace D365CE.CustomPricingTalk
             }
             return da;
         }
+        /// <summary>
+        /// Calculates the appropriate freight amount to apply to a line item record, and returns this as a monetary value.
+        /// </summary>
+        /// <param name="lineItem">The line item record to calculate the discount for</param>
+        /// <param name="service">A reference to the IOrganizationService. Required to perform record retrievals.</param>
+        /// <param name="tracing">A reference to the ITracingService. Required for debugging.</param>
         private static Money CalculateLineItemFreight(Entity lineItem, IOrganizationService service, ITracingService tracing)
         {
             tracing.Trace("Calculating freight amount for line item record...");
@@ -467,12 +501,13 @@ namespace D365CE.CustomPricingTalk
 
             return fa;
         }
+        /// <summary>
+        /// Returns the corresponding child Sales entity line entity logical name and vice-versa. For example, passing "opportunityproduct" to this method would return "opportunity"
+        /// </summary>
+        /// <param name="entity">The logical name of the entity to evaluate</param>
         private static string GetProductEntityName(string entity)
         {
             string pe = "";
-
-            //Return the corresponding child Sales entity line entity name and vice-versa.
-            //For example, passing "opportunityproduct" to this method would return "opportunity"
 
             switch (entity)
             {
@@ -511,12 +546,13 @@ namespace D365CE.CustomPricingTalk
                     return pe;
             }
         }
+        /// <summary>
+        /// Returns the corresponding parent Sales entity line parent lookup, logical field name. For example, passing "opportunityproduct" to this method would return "opportunityid"
+        /// </summary>
+        /// <param name="entity">The logical name of the entity to evaluate</param>
         private static string GetProductEntityIDName(string entity)
         {
             string pe = "";
-
-            //Return the corresponding parent Sales entity line parent lookup field name.
-            //For example, passing "opportunityproduct" to this method would return "opportunityid"
 
             switch (entity)
             {
@@ -537,6 +573,12 @@ namespace D365CE.CustomPricingTalk
                     return pe;
             }
         }
+        /// <summary>
+        /// Retrieve cost price details from the Product line item record supplied and determine return true if it is being sold below cost price; else, false.
+        /// </summary>
+        /// <param name="lineItem">The line item record to evaluate.</param>
+        /// <param name="service">A reference to the IOrganizationService. Required to perform record retrievals.</param>
+        /// <param name="tracing">A reference to the ITracingService. Required for debugging.</param>
         private static bool CheckLineItemCostPrice(Entity lineItem, IOrganizationService service, ITracingService tracing)
         {
             bool underCostPrice = false;
@@ -614,7 +656,12 @@ namespace D365CE.CustomPricingTalk
 
             return underCostPrice;
         }
-
+        /// <summary>
+        /// Determines whether prices are locked for an Order Product or Invoice Product record and, if so, returns true; else, false.
+        /// </summary>
+        /// <param name="entity">The entity to evaluate. Must equal either salesorderdetail or invoicedetail</param>
+        /// <param name="service">A reference to the IOrganizationService. Required to perform record retrievals.</param>
+        /// <param name="tracing">A reference to the ITracingService. Required for debugging.</param>
         private static bool CheckIfPricingLocked(Entity entity, IOrganizationService service, ITracingService tracing)
         {
             tracing.Trace("Determining whether prices are locked or not...");
