@@ -6,6 +6,15 @@ IPluginExecutionContext context = (IPluginExecutionContext)serviceProvider.GetSe
 ITracingService tracing = (ITracingService)serviceProvider.GetService(typeof(ITracingService));
 tracing.Trace("Tracing implemented successfully!");
 
+//Check the parent context, break if it contains CustomPrice shared variable - this prevents infinite loop
+
+if (context.ParentContext != null
+	&& context.ParentContext.ParentContext != null
+	&& context.ParentContext.ParentContext.ParentContext != null
+	&& context.ParentContext.ParentContext.ParentContext.SharedVariables.ContainsKey("CustomPrice")
+	&& (bool)context.ParentContext.ParentContext.ParentContext.SharedVariables["CustomPrice"])
+	return;
+
 //CheckIfNotValidEntity Method
 
 private static bool CheckIfNotValidEntity(EntityReference entity)
