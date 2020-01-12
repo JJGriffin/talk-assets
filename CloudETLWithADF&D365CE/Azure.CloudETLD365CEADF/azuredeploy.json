@@ -221,24 +221,6 @@
     {
       "type": "Microsoft.KeyVault/vaults/secrets",
       "apiVersion": "2016-10-01",
-      "name": "[concat(parameters('akv_name'), '/DataBrickAT')]",
-      "location": "uksouth",
-      "tags": {
-        "displayName": "Azure Data Brick Access Token Secret for Key Vault"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.KeyVault/vaults', parameters('akv_name'))]"
-      ],
-      "properties": {
-        "attributes": {
-          "enabled": true
-        },
-        "value": "UPDATEME"
-      }
-    },
-    {
-      "type": "Microsoft.KeyVault/vaults/secrets",
-      "apiVersion": "2016-10-01",
       "name": "[concat(parameters('akv_name'), '/SAConnectionString')]",
       "location": "uksouth",
       "tags": {
@@ -286,8 +268,8 @@
       "properties": {},
       "resources": [
         {
-          "type": "pipelines",
           "name": "CRM2013_D365CE_Account",
+          "type": "pipelines",
           "apiVersion": "2018-06-01",
           "tags": {
             "displayName": "Account Import Pipeline"
@@ -314,11 +296,11 @@
                   "sink": {
                     "type": "DelimitedTextSink",
                     "storeSettings": {
-                      "type": "AzureBlobStorageWriteSetting",
+                      "type": "AzureBlobStorageWriteSettings",
                       "copyBehavior": "FlattenHierarchy"
                     },
                     "formatSettings": {
-                      "type": "DelimitedTextWriteSetting",
+                      "type": "DelimitedTextWriteSettings",
                       "quoteAllText": true,
                       "fileExtension": ".csv"
                     }
@@ -506,44 +488,11 @@
                 ]
               },
               {
-                "name": "D365CE ADF Transformations",
-                "type": "DatabricksNotebook",
-                "dependsOn": [
-                  {
-                    "activity": "sql-to-blob",
-                    "dependencyConditions": [
-                      "Succeeded"
-                    ]
-                  }
-                ],
-                "policy": {
-                  "timeout": "7.00:00:00",
-                  "retry": 0,
-                  "retryIntervalInSeconds": 30,
-                  "secureOutput": false,
-                  "secureInput": false
-                },
-                "userProperties": [],
-                "typeProperties": {
-                  "notebookPath": "[concat('/Users/', parameters('email'), '/D365CE ADF Transformations')]",
-                  "baseParameters": {
-                    "filename": {
-                      "value": "@concat('Staging_Account_', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
-                      "type": "Expression"
-                    }
-                  }
-                },
-                "linkedServiceName": {
-                  "referenceName": "[parameters('adb_name')]",
-                  "type": "LinkedServiceReference"
-                }
-              },
-              {
                 "name": "blob-to-d365ce",
                 "type": "Copy",
                 "dependsOn": [
                   {
-                    "activity": "D365CE ADF Transformations",
+                    "activity": "AccountTransform",
                     "dependencyConditions": [
                       "Succeeded"
                     ]
@@ -561,13 +510,13 @@
                   "source": {
                     "type": "DelimitedTextSource",
                     "storeSettings": {
-                      "type": "AzureBlobStorageReadSetting",
+                      "type": "AzureBlobStorageReadSettings",
                       "recursive": true,
-                      "wildcardFileName": "Staging_Account_????-??-??_Transformed.csv",
+                      "wildcardFileName": "Staging_Account_????-??-??_Transformed",
                       "enablePartitionDiscovery": false
                     },
                     "formatSettings": {
-                      "type": "DelimitedTextReadSetting"
+                      "type": "DelimitedTextReadSettings"
                     }
                   },
                   "sink": {
@@ -590,8 +539,7 @@
                       },
                       {
                         "source": {
-                          "name": "name",
-                          "type": "String"
+                          "name": "name_df"
                         },
                         "sink": {
                           "name": "name"
@@ -740,6 +688,75 @@
                     "parameters": {}
                   }
                 ]
+              },
+              {
+                "name": "AccountTransform",
+                "type": "ExecuteDataFlow",
+                "dependsOn": [
+                  {
+                    "activity": "sql-to-blob",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataflow": {
+                    "referenceName": "AccountTransform",
+                    "type": "DataFlowReference",
+                    "parameters": {},
+                    "datasetParameters": {
+                      "StagingAccount": {},
+                      "StagingAccountTransformed": {}
+                    }
+                  },
+                  "staging": {},
+                  "compute": {
+                    "coreCount": 8,
+                    "computeType": "General"
+                  }
+                }
+              },
+              {
+                "name": "Cleanup",
+                "type": "Delete",
+                "dependsOn": [
+                  {
+                    "activity": "blob-to-d365ce",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataset": {
+                    "referenceName": "Staging_Account",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  },
+                  "enableLogging": false,
+                  "storeSettings": {
+                    "type": "AzureBlobStorageReadSettings",
+                    "recursive": true,
+                    "wildcardFileName": "*"
+                  }
+                }
               }
             ],
             "annotations": []
@@ -747,15 +764,15 @@
           "dependsOn": [
             "[concat(variables('factoryId'), '/datasets/CRM2013OnPremSQL')]",
             "[concat(variables('factoryId'), '/datasets/Staging_Account')]",
-            "[concat(variables('factoryId'), '/linkedServices/', parameters('adb_name'))]",
             "[concat(variables('factoryId'), '/datasets/Staging_Account_Transformed')]",
             "[concat(variables('factoryId'), '/datasets/CDS_Account')]",
+            "[concat(variables('factoryId'), '/dataflows/AccountTransform')]",
             "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
           ]
         },
         {
-          "type": "pipelines",
           "name": "CRM2013_D365CE_Contact",
+          "type": "pipelines",
           "apiVersion": "2018-06-01",
           "tags": {
             "displayName": "Contact Import Pipeline"
@@ -782,10 +799,10 @@
                   "sink": {
                     "type": "DelimitedTextSink",
                     "storeSettings": {
-                      "type": "AzureBlobStorageWriteSetting"
+                      "type": "AzureBlobStorageWriteSettings"
                     },
                     "formatSettings": {
-                      "type": "DelimitedTextWriteSetting",
+                      "type": "DelimitedTextWriteSettings",
                       "quoteAllText": true,
                       "fileExtension": ".txt"
                     }
@@ -973,44 +990,11 @@
                 ]
               },
               {
-                "name": "D365CE ADF Transformations",
-                "type": "DatabricksNotebook",
-                "dependsOn": [
-                  {
-                    "activity": "sql-to-blob",
-                    "dependencyConditions": [
-                      "Succeeded"
-                    ]
-                  }
-                ],
-                "policy": {
-                  "timeout": "7.00:00:00",
-                  "retry": 0,
-                  "retryIntervalInSeconds": 30,
-                  "secureOutput": false,
-                  "secureInput": false
-                },
-                "userProperties": [],
-                "typeProperties": {
-                  "notebookPath": "[concat('/Users/', parameters('email'), '/D365CE ADF Transformations')]",
-                  "baseParameters": {
-                    "filename": {
-                      "value": "@concat('Staging_Contact_', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
-                      "type": "Expression"
-                    }
-                  }
-                },
-                "linkedServiceName": {
-                  "referenceName": "[parameters('adb_name')]",
-                  "type": "LinkedServiceReference"
-                }
-              },
-              {
                 "name": "blob-to-d365ce",
                 "type": "Copy",
                 "dependsOn": [
                   {
-                    "activity": "D365CE ADF Transformations",
+                    "activity": "ContactTransform",
                     "dependencyConditions": [
                       "Succeeded"
                     ]
@@ -1028,13 +1012,13 @@
                   "source": {
                     "type": "DelimitedTextSource",
                     "storeSettings": {
-                      "type": "AzureBlobStorageReadSetting",
+                      "type": "AzureBlobStorageReadSettings",
                       "recursive": true,
-                      "wildcardFileName": "Staging_Contact_????-??-??_Transformed.csv",
+                      "wildcardFileName": "Staging_Contact_????-??-??_Transformed",
                       "enablePartitionDiscovery": false
                     },
                     "formatSettings": {
-                      "type": "DelimitedTextReadSetting"
+                      "type": "DelimitedTextReadSettings"
                     }
                   },
                   "sink": {
@@ -1253,6 +1237,75 @@
                     "parameters": {}
                   }
                 ]
+              },
+              {
+                "name": "ContactTransform",
+                "type": "ExecuteDataFlow",
+                "dependsOn": [
+                  {
+                    "activity": "sql-to-blob",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataflow": {
+                    "referenceName": "ContactTransform",
+                    "type": "DataFlowReference",
+                    "parameters": {},
+                    "datasetParameters": {
+                      "StagingContact": {},
+                      "StagingContactTransformed": {}
+                    }
+                  },
+                  "staging": {},
+                  "compute": {
+                    "coreCount": 8,
+                    "computeType": "General"
+                  }
+                }
+              },
+              {
+                "name": "Cleanup",
+                "type": "Delete",
+                "dependsOn": [
+                  {
+                    "activity": "blob-to-d365ce",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataset": {
+                    "referenceName": "Staging_Contact",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  },
+                  "enableLogging": false,
+                  "storeSettings": {
+                    "type": "AzureBlobStorageReadSettings",
+                    "recursive": true,
+                    "wildcardFileName": "*"
+                  }
+                }
               }
             ],
             "annotations": []
@@ -1260,9 +1313,9 @@
           "dependsOn": [
             "[concat(variables('factoryId'), '/datasets/CRM2013OnPremSQL')]",
             "[concat(variables('factoryId'), '/datasets/Staging_Contact')]",
-            "[concat(variables('factoryId'), '/linkedServices/', parameters('adb_name'))]",
             "[concat(variables('factoryId'), '/datasets/Staging_Contact_Transformed')]",
             "[concat(variables('factoryId'), '/datasets/CDS_Contact')]",
+            "[concat(variables('factoryId'), '/dataflows/ContactTransform')]",
             "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
           ]
         },
@@ -1342,8 +1395,8 @@
           ]
         },
         {
-          "type": "pipelines",
           "name": "CRM2013_D365CE_Lead",
+          "type": "pipelines",
           "apiVersion": "2018-06-01",
           "tags": {
             "displayName": "Lead Import Pipeline"
@@ -1370,10 +1423,10 @@
                   "sink": {
                     "type": "DelimitedTextSink",
                     "storeSettings": {
-                      "type": "AzureBlobStorageWriteSetting"
+                      "type": "AzureBlobStorageWriteSettings"
                     },
                     "formatSettings": {
-                      "type": "DelimitedTextWriteSetting",
+                      "type": "DelimitedTextWriteSettings",
                       "quoteAllText": true,
                       "fileExtension": ".csv"
                     }
@@ -1581,44 +1634,11 @@
                 ]
               },
               {
-                "name": "D365CE ADF Transformations",
-                "type": "DatabricksNotebook",
-                "dependsOn": [
-                  {
-                    "activity": "sql-to-blob",
-                    "dependencyConditions": [
-                      "Succeeded"
-                    ]
-                  }
-                ],
-                "policy": {
-                  "timeout": "7.00:00:00",
-                  "retry": 0,
-                  "retryIntervalInSeconds": 30,
-                  "secureOutput": false,
-                  "secureInput": false
-                },
-                "userProperties": [],
-                "typeProperties": {
-                  "notebookPath": "[concat('/Users/', parameters('email'), '/D365CE ADF Transformations')]",
-                  "baseParameters": {
-                    "filename": {
-                      "value": "@concat('Staging_Lead_', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
-                      "type": "Expression"
-                    }
-                  }
-                },
-                "linkedServiceName": {
-                  "referenceName": "[parameters('adb_name')]",
-                  "type": "LinkedServiceReference"
-                }
-              },
-              {
                 "name": "blob-to-d365ce",
                 "type": "Copy",
                 "dependsOn": [
                   {
-                    "activity": "D365CE ADF Transformations",
+                    "activity": "LeadTransform",
                     "dependencyConditions": [
                       "Succeeded"
                     ]
@@ -1636,13 +1656,13 @@
                   "source": {
                     "type": "DelimitedTextSource",
                     "storeSettings": {
-                      "type": "AzureBlobStorageReadSetting",
+                      "type": "AzureBlobStorageReadSettings",
                       "recursive": true,
-                      "wildcardFileName": "Staging_Lead_????-??-??_Transformed.csv",
+                      "wildcardFileName": "Staging_Lead_????-??-??_Transformed",
                       "enablePartitionDiscovery": false
                     },
                     "formatSettings": {
-                      "type": "DelimitedTextReadSetting"
+                      "type": "DelimitedTextReadSettings"
                     }
                   },
                   "sink": {
@@ -1841,6 +1861,75 @@
                     "parameters": {}
                   }
                 ]
+              },
+              {
+                "name": "LeadTransform",
+                "type": "ExecuteDataFlow",
+                "dependsOn": [
+                  {
+                    "activity": "sql-to-blob",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataflow": {
+                    "referenceName": "LeadTransform",
+                    "type": "DataFlowReference",
+                    "parameters": {},
+                    "datasetParameters": {
+                      "StagingLead": {},
+                      "StagingLeadTransformed": {}
+                    }
+                  },
+                  "staging": {},
+                  "compute": {
+                    "coreCount": 8,
+                    "computeType": "General"
+                  }
+                }
+              },
+              {
+                "name": "Cleanup",
+                "type": "Delete",
+                "dependsOn": [
+                  {
+                    "activity": "blob-to-d365ce",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataset": {
+                    "referenceName": "Staging_Lead",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  },
+                  "enableLogging": false,
+                  "storeSettings": {
+                    "type": "AzureBlobStorageReadSettings",
+                    "recursive": true,
+                    "wildcardFileName": "*"
+                  }
+                }
               }
             ],
             "annotations": []
@@ -1848,9 +1937,9 @@
           "dependsOn": [
             "[concat(variables('factoryId'), '/datasets/CRM2013OnPremSQL')]",
             "[concat(variables('factoryId'), '/datasets/Staging_Lead')]",
-            "[concat(variables('factoryId'), '/linkedServices/', parameters('adb_name'))]",
             "[concat(variables('factoryId'), '/datasets/Staging_Lead_Transformed')]",
             "[concat(variables('factoryId'), '/datasets/CDS_Lead')]",
+            "[concat(variables('factoryId'), '/dataflows/LeadTransform')]",
             "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
           ]
         },
@@ -2210,7 +2299,72 @@
               "firstRowAsHeader": true,
               "quoteChar": "\""
             },
-            "schema": []
+            "schema": [
+              {
+                "name": "accountid",
+                "type": "String"
+              },
+              {
+                "name": "name",
+                "type": "String"
+              },
+              {
+                "name": "createdon",
+                "type": "String"
+              },
+              {
+                "name": "statecode",
+                "type": "String"
+              },
+              {
+                "name": "statuscode",
+                "type": "String"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "fax",
+                "type": "String"
+              },
+              {
+                "name": "industrycode",
+                "type": "String"
+              },
+              {
+                "name": "numberofemployees",
+                "type": "String"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "address1_county",
+                "type": "String"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "address1_country",
+                "type": "String"
+              },
+              {
+                "name": "address1_latitude",
+                "type": "String"
+              },
+              {
+                "name": "address1_longitude",
+                "type": "String"
+              }
+            ]
           },
           "dependsOn": [
             "[concat(variables('factoryId'), '/linkedServices/', parameters('sa_name'))]",
@@ -2237,10 +2391,6 @@
             "typeProperties": {
               "location": {
                 "type": "AzureBlobStorageLocation",
-                "fileName": {
-                  "value": "@concat('Staging_Account_', formatDateTime(utcnow(), 'yyyy-MM-dd'),'_Transformed')",
-                  "type": "Expression"
-                },
                 "container": "crmsinkdata-account"
               },
               "columnDelimiter": ",",
@@ -2359,7 +2509,72 @@
               "firstRowAsHeader": true,
               "quoteChar": "\""
             },
-            "schema": []
+            "schema": [
+              {
+                "name": "contactid",
+                "type": "String"
+              },
+              {
+                "name": "firstname",
+                "type": "String"
+              },
+              {
+                "name": "lastname",
+                "type": "String"
+              },
+              {
+                "name": "createdon",
+                "type": "String"
+              },
+              {
+                "name": "ownerid",
+                "type": "String"
+              },
+              {
+                "name": "statecode",
+                "type": "String"
+              },
+              {
+                "name": "statuscode",
+                "type": "String"
+              },
+              {
+                "name": "salutation",
+                "type": "String"
+              },
+              {
+                "name": "accountid",
+                "type": "String"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "emailaddress1",
+                "type": "String"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "birthdate",
+                "type": "String"
+              },
+              {
+                "name": "creditlimit",
+                "type": "String"
+              }
+            ]
           },
           "dependsOn": [
             "[concat(variables('factoryId'), '/linkedServices/', parameters('sa_name'))]",
@@ -2386,10 +2601,6 @@
             "typeProperties": {
               "location": {
                 "type": "AzureBlobStorageLocation",
-                "fileName": {
-                  "value": "@concat('Staging_Contact_', formatDateTime(utcnow(), 'yyyy-MM-dd'),'_Transformed')",
-                  "type": "Expression"
-                },
                 "container": "crmsinkdata-contact"
               },
               "columnDelimiter": ",",
@@ -2524,7 +2735,80 @@
               "firstRowAsHeader": true,
               "quoteChar": "\""
             },
-            "schema": []
+            "schema": [
+              {
+                "name": "leadid",
+                "type": "String"
+              },
+              {
+                "name": "subject",
+                "type": "String"
+              },
+              {
+                "name": "ownerid",
+                "type": "String"
+              },
+              {
+                "name": "createdon",
+                "type": "String"
+              },
+              {
+                "name": "statecode",
+                "type": "String"
+              },
+              {
+                "name": "statuscode",
+                "type": "String"
+              },
+              {
+                "name": "salutation",
+                "type": "String"
+              },
+              {
+                "name": "firstname",
+                "type": "String"
+              },
+              {
+                "name": "lastname",
+                "type": "String"
+              },
+              {
+                "name": "companyname",
+                "type": "String"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "emailaddress1",
+                "type": "String"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "description",
+                "type": "String"
+              },
+              {
+                "name": "leadqualitycode",
+                "type": "String"
+              },
+              {
+                "name": "leadsourcecode",
+                "type": "String"
+              }
+            ]
           },
           "dependsOn": [
             "[concat(variables('factoryId'), '/linkedServices/', parameters('sa_name'))]",
@@ -2551,10 +2835,6 @@
             "typeProperties": {
               "location": {
                 "type": "AzureBlobStorageLocation",
-                "fileName": {
-                  "value": "@concat('Staging_Lead_', formatDateTime(utcnow(), 'yyyy-MM-dd'),'_Transformed')",
-                  "type": "Expression"
-                },
                 "container": "crmsinkdata-lead"
               },
               "columnDelimiter": ",",
@@ -2729,35 +3009,6 @@
         },
         {
           "type": "linkedServices",
-          "name": "[parameters('adb_name')]",
-          "apiVersion": "2018-06-01",
-          "tags": {
-            "displayName": "Azure Data Brick Linked Service"
-          },
-          "properties": {
-            "type": "AzureDataBricks",
-            "typeProperties": {
-              "domain": "https://uksouth.azuredatabricks.net",
-              "accessToken": {
-                "type": "AzureKeyVaultSecret",
-                "store": {
-                  "referenceName": "[parameters('akv_name')]",
-                  "type": "LinkedServiceReference"
-                },
-                "secretName": "DataBrickAT"
-              },
-              "newClusterNodeType": "Standard_DS3_v2",
-              "newClusterNumOfWorker": "1",
-              "newClusterVersion": "5.4.x-scala2.11"
-            }
-          },
-          "dependsOn": [
-            "[concat(variables('factoryId'), '/linkedServices/', parameters('akv_name'))]",
-            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
-          ]
-        },
-        {
-          "type": "linkedServices",
           "name": "[parameters('akv_name')]",
           "apiVersion": "2018-06-01",
           "tags": {
@@ -2788,23 +3039,137 @@
           "dependsOn": [
             "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
           ]
+        },
+        {
+          "name": "AccountTransform",
+          "type": "dataflows",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Account Mapping Data Flow"
+          },
+          "properties": {
+            "type": "MappingDataFlow",
+            "typeProperties": {
+              "sources": [
+                {
+                  "dataset": {
+                    "referenceName": "Staging_Account",
+                    "type": "DatasetReference"
+                  },
+                  "name": "StagingAccount",
+                  "typeProperties": {}
+                }
+              ],
+              "sinks": [
+                {
+                  "dataset": {
+                    "referenceName": "Staging_Account_Transformed",
+                    "type": "DatasetReference"
+                  },
+                  "name": "StagingAccountTransformed"
+                }
+              ],
+              "transformations": [
+                {
+                  "name": "AppendNewAccountName"
+                }
+              ],
+              "script": "\n\nsource(output(\n\t\taccountid as string,\n\t\tname as string,\n\t\tcreatedon as string,\n\t\tstatecode as string,\n\t\tstatuscode as string,\n\t\ttelephone1 as string,\n\t\tfax as string,\n\t\tindustrycode as string,\n\t\tnumberofemployees as integer,\n\t\taddress1_line1 as string,\n\t\taddress1_city as string,\n\t\taddress1_county as string,\n\t\taddress1_postalcode as string,\n\t\taddress1_country as string,\n\t\taddress1_latitude as string,\n\t\taddress1_longitude as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> StagingAccount\nStagingAccount derive(name_df = iif(numberofemployees <= 50, concat(name, \" - SMB\"), iif(numberofemployees >= 51 && numberofemployees <= 250, concat(name, \" - SME\"), concat(name, \" - Enterprise\")))) ~> AppendNewAccountName\nAppendNewAccountName sink(input(\n\t\tteamsize as string,\n\t\taccountid as string,\n\t\tname as string,\n\t\tstatecode as integer,\n\t\tstatuscode as integer,\n\t\tcreatedon as timestamp,\n\t\ttelephone1 as string,\n\t\tfax as string,\n\t\tindustrycode as integer,\n\t\tnumberofemployees as integer,\n\t\taddress1_line1 as string,\n\t\taddress1_city as string,\n\t\taddress1_county as string,\n\t\taddress1_country as string,\n\t\taddress1_postalcode as string,\n\t\taddress1_latitude as double,\n\t\taddress1_longitude as double,\n\t\towningteam as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:[(concat('Staging_Account_', toString(currentDate('GMT'), 'yyyy-MM-dd'), '_Transformed'))],\n\tpartitionBy('hash', 1)) ~> StagingAccountTransformed"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/datasets/Staging_Account')]",
+            "[concat(variables('factoryId'), '/datasets/Staging_Account_Transformed')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "name": "ContactTransform",
+          "type": "dataflows",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Contact Mapping Data Flow"
+          },
+          "properties": {
+            "type": "MappingDataFlow",
+            "typeProperties": {
+              "sources": [
+                {
+                  "dataset": {
+                    "referenceName": "Staging_Contact",
+                    "type": "DatasetReference"
+                  },
+                  "name": "StagingContact",
+                  "typeProperties": {}
+                }
+              ],
+              "sinks": [
+                {
+                  "dataset": {
+                    "referenceName": "Staging_Contact_Transformed",
+                    "type": "DatasetReference"
+                  },
+                  "name": "StagingContactTransformed"
+                }
+              ],
+              "transformations": [
+                {
+                  "name": "AppendNewContactPreferenceFields"
+                }
+              ],
+              "script": "\n\nsource(output(\n\t\tcontactid as string,\n\t\tfirstname as string,\n\t\tlastname as string,\n\t\tcreatedon as string,\n\t\townerid as string,\n\t\tstatecode as string,\n\t\tstatuscode as string,\n\t\tsalutation as string,\n\t\taccountid as string,\n\t\ttelephone1 as string,\n\t\temailaddress1 as string,\n\t\taddress1_line1 as string,\n\t\taddress1_city as string,\n\t\taddress1_postalcode as string,\n\t\tbirthdate as string,\n\t\tcreditlimit as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> StagingContact\nStagingContact derive(preferredcontactmethodcode = 2,\n\t\tdonotemail = 0,\n\t\tdonotbulkemail = 0,\n\t\tdonotphone = 1,\n\t\tdonotfax = 1,\n\t\tdonotpostalmail = 1) ~> AppendNewContactPreferenceFields\nAppendNewContactPreferenceFields sink(input(\n\t\tcontactid as string,\n\t\tfirstname as string,\n\t\tlastname as string,\n\t\tcreatedon as timestamp,\n\t\townerid as string,\n\t\tstatecode as integer,\n\t\tstatuscode as integer,\n\t\tsalutation as string,\n\t\taccountid as string,\n\t\ttelephone1 as string,\n\t\temailaddress1 as string,\n\t\taddress1_line1 as string,\n\t\taddress1_city as string,\n\t\taddress1_postalcode as string,\n\t\tbirthdate as timestamp,\n\t\tcreditlimit as decimal(10,0),\n\t\tpreferredcontactmethodcode as integer,\n\t\tdonotemail as boolean,\n\t\tdonotbulkemail as boolean,\n\t\tdonotphone as boolean,\n\t\tdonotfax as boolean,\n\t\tdonotpostalmail as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:[(concat('Staging_Contact_', toString(currentDate('GMT'), 'yyyy-MM-dd'), '_Transformed'))],\n\tpartitionBy('hash', 1)) ~> StagingContactTransformed"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/datasets/Staging_Contact')]",
+            "[concat(variables('factoryId'), '/datasets/Staging_Contact_Transformed')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
+        },
+        {
+          "name": "LeadTransform",
+          "type": "dataflows",
+          "apiVersion": "2018-06-01",
+          "tags": {
+            "displayName": "Lead Mapping Data Flow"
+          },
+          "properties": {
+            "type": "MappingDataFlow",
+            "typeProperties": {
+              "sources": [
+                {
+                  "dataset": {
+                    "referenceName": "Staging_Lead",
+                    "type": "DatasetReference"
+                  },
+                  "name": "StagingLead",
+                  "typeProperties": {}
+                }
+              ],
+              "sinks": [
+                {
+                  "dataset": {
+                    "referenceName": "Staging_Lead_Transformed",
+                    "type": "DatasetReference"
+                  },
+                  "name": "StagingLeadTransformed"
+                }
+              ],
+              "transformations": [
+                {
+                  "name": "FilterActiveLeadsOnly"
+                }
+              ],
+              "script": "\n\nsource(output(\n\t\tleadid as string,\n\t\tsubject as string,\n\t\townerid as string,\n\t\tcreatedon as string,\n\t\tstatecode as integer,\n\t\tstatuscode as integer,\n\t\tsalutation as string,\n\t\tfirstname as string,\n\t\tlastname as string,\n\t\tcompanyname as string,\n\t\ttelephone1 as string,\n\t\temailaddress1 as string,\n\t\taddress1_line1 as string,\n\t\taddress1_city as string,\n\t\taddress1_postalcode as string,\n\t\tdescription as string,\n\t\tleadqualitycode as string,\n\t\tleadsourcecode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> StagingLead\nStagingLead filter(statecode == 0) ~> FilterActiveLeadsOnly\nFilterActiveLeadsOnly sink(input(\n\t\tleadid as string,\n\t\tsubject as string,\n\t\tcreatedon as timestamp,\n\t\townerid as string,\n\t\tstatecode as integer,\n\t\tstatuscode as integer,\n\t\tsalutation as string,\n\t\tfirstname as string,\n\t\tlastname as string,\n\t\tcompanyname as string,\n\t\ttelephone1 as string,\n\t\temailaddress1 as string,\n\t\taddress1_line1 as string,\n\t\taddress1_city as string,\n\t\taddress1_postalcode as string,\n\t\tdescription as string,\n\t\tleadqualitycode as integer,\n\t\tleadsourcecode as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:[(concat('Staging_Lead_', toString(currentDate('GMT'), 'yyyy-MM-dd'), '_Transformed'))],\n\tpartitionBy('hash', 1)) ~> StagingLeadTransformed"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/datasets/Staging_Lead')]",
+            "[concat(variables('factoryId'), '/datasets/Staging_Lead_Transformed')]",
+            "[resourceId('Microsoft.DataFactory/factories', parameters('adf_name'))]"
+          ]
         }
       ]
-    },
-    {
-      "type": "Microsoft.Databricks/workspaces",
-      "name": "[parameters('adb_name')]",
-      "location": "uksouth",
-      "tags": {
-        "displayName": "Azure Data Bricks Workspace"
-      },
-      "apiVersion": "2018-04-01",
-      "sku": {
-        "name": "standard"
-      },
-      "properties": {
-        "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('adb_managedRGName'))]"
-      }
     }
   ],
   "outputs": {}
