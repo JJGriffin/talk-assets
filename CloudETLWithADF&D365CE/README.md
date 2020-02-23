@@ -12,7 +12,7 @@ In this deep-dive session, we’ll look at how Azure Data Factory can be used to s
 * **ADFImportSolution_0_1.zip** - D365CE/CDS Solution file, that contains a single field customisation needed to import data into the Customer field on the **Contact** entity.
 * **ADFImport-UpdateparentcustomeridField.zip** - Zip file containing the Microsoft Flow that imports data into the **Contact** Customer field.
 * **D365CEADFDEMO_MSCRM.zip** - ZIP file that contains the SQL Server backup (.bak) of the CRM 2013 organization demoed in the talk, containing all sample data.
-* **Cloud ETL with Azure Data Factory & Dynamics 365 Customer Engagement.pdf** - PDF version of the talks PowerPoint presentation.
+* **Cloud ETL with Azure Data Factory & the Common Data Service.pdf** - PDF version of the talks PowerPoint presentation.
 
 ## Using the Samples ##
 
@@ -22,7 +22,7 @@ To work with the samples, you should ideally have:
 
 * A valid Azure subscription
 * An on-premise instance of Dynamics CRM 2013, running SQL Server 2008 R2 (other versions may work, but the included databases derives from these versions)
-* A Dynamics 365 Customer Engagement Online tenant, with access to Microsoft Flow
+* A Dynamics 365 Online / Common Data Service tenant (with database), with access to Microsoft Flow
 * [Visual Studio 2017 or later with the Azure development and ASP.NET workloads installed](https://docs.microsoft.com/en-us/dotnet/azure/dotnet-tools?view=azure-dotnet&tabs=windows)
 * Some familiarity with working with [Azure Template Projects in Visual Studio](https://docs.microsoft.com/en-us/azure/azure-resource-manager/vs-azure-tools-resource-groups-deployment-projects-create-deploy) is advised.
 
