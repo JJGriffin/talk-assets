@@ -10,7 +10,7 @@ In this session, I hope to provide a "crash course" discussion on how and when t
 
 * **DataExportService_HelperFunctions.sql** - SQL script containing the various helper functions to extract Option Set values from a Data Export Service database.
 * **GenerateFetchXMLResults - M Query.txt** - Power Query (M) code for a function that will convert FetchXML queries into a returnable object within Power BI Desktop
-* **Cloud ETL with Azure Data Factory & Dynamics 365 Customer Engagement.pdf** - PDF version of the talks PowerPoint presentation.
+* **Leveraging Power BI with Dynamics 365 Customer Engagement.pdf** - PDF version of the talks PowerPoint presentation.
 
 ## Disclaimer ##
 
