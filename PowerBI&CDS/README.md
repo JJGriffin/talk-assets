@@ -1,4 +1,4 @@
-# Leveraging Power BI with THe Common Data Service #
+# Leveraging Power BI with The Common Data Service #
 
 ## Abstract ##
 
