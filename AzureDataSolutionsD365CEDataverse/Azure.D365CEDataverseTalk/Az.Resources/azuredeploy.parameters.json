@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vulnerabilityAssessments_Default_storageContainerPath": {
+      "value": null
+    },
+    "servers_azdatatalk_name": {
+      "value": null
+    },
+    "vaults_azdatatalk_name": {
+      "value": null
+    },
+    "workspaces_azdatatalk_name": {
+      "value": null
+    },
+    "storageAccounts_cdsdatalakestore_name": {
+      "value": null
+    },
+    "storageAccounts_companieshouseblobstore_name": {
+      "value": null
+    }
+  }
+}
