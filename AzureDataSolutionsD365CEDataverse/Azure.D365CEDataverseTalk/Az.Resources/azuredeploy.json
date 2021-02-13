@@ -1,0 +1,2350 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vulnerabilityAssessments_Default_storageContainerPath": {
+      "type": "SecureString"
+    },
+    "servers_azdatatalk_name": {
+      "type": "String"
+    },
+    "vaults_azdatatalk_name": {
+      "type": "String"
+    },
+    "workspaces_azdatatalk_name": {
+      "type": "String"
+    },
+    "storageAccounts_cdsdatalakestore_name": {
+      "type": "String"
+    },
+    "storageAccounts_companieshouseblobstore_name": {
+      "type": "String"
+    },
+    "factoryName": {
+      "type": "string"
+    },
+    "AzureDataLakeStorage_accountKey": {
+      "type": "secureString"
+    },
+    "AzureBlobStorage_connectionString": {
+      "type": "secureString"
+    },
+    "AzureSynapseAnalytics_connectionString": {
+      "type": "secureString"
+    },
+    "AzureDataLakeStorage_properties_typeProperties_url": {
+      "type": "string",
+      "defaultValue": "https://cdsdatalakestore.dfs.core.windows.net"
+    }
+  },
+  "variables": {
+    "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Databricks/workspaces",
+      "apiVersion": "2018-04-01",
+      "name": "[parameters('workspaces_azdatatalk_name')]",
+      "location": "uksouth",
+      "sku": {
+        "name": "standard"
+      },
+      "properties": {
+        "managedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', resourceGroup().name, parameters('workspaces_azdatatalk_name'), '-6ifdgfvpo5o3e')]",
+        "parameters": {
+          "enableNoPublicIp": {
+            "type": "Bool",
+            "value": false
+          },
+          "prepareEncryption": {
+            "type": "Bool",
+            "value": false
+          },
+          "requireInfrastructureEncryption": {
+            "type": "Bool",
+            "value": false
+          }
+        },
+        "createdBy": {},
+        "updatedBy": {}
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2016-10-01",
+      "name": "[parameters('vaults_azdatatalk_name')]",
+      "location": "uksouth",
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "Standard"
+        },
+        "tenantId": "[subscription().tenantId]",
+        "accessPolicies": [],
+        "enabledForDeployment": false,
+        "enabledForDiskEncryption": false,
+        "enabledForTemplateDeployment": false,
+        "enableSoftDelete": true
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2019-06-01-preview",
+      "name": "[parameters('servers_azdatatalk_name')]",
+      "location": "uksouth",
+      "kind": "v12.0",
+      "properties": {
+        "administratorLogin": "[concat(parameters('servers_azdatatalk_name'), '-sa')]",
+        "version": "12.0",
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2020-08-01-preview",
+      "name": "[parameters('storageAccounts_cdsdatalakestore_name')]",
+      "location": "ukwest",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "minimumTlsVersion": "TLS1_2",
+        "allowBlobPublicAccess": true,
+        "isHnsEnabled": true,
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "blob": {
+              "keyType": "Account",
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "accessTier": "Hot"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2020-08-01-preview",
+      "name": "[parameters('storageAccounts_companieshouseblobstore_name')]",
+      "location": "uksouth",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "minimumTlsVersion": "TLS1_2",
+        "allowBlobPublicAccess": true,
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "virtualNetworkRules": [],
+          "ipRules": [],
+          "defaultAction": "Allow"
+        },
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "blob": {
+              "keyType": "Account",
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        },
+        "accessTier": "Hot"
+      }
+    },
+    {
+      "name": "[parameters('factoryName')]",
+      "apiVersion": "2018-06-01",
+      "type": "Microsoft.DataFactory/factories",
+      "location": "uksouth",
+      "properties": {},
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "tags": {
+        "displayName": "Data Factory Resource"
+      },
+      "resources": [
+        {
+          "name": "[concat(parameters('factoryName'), '/CDSCompaniesHouseMerge')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "activities": [
+              {
+                "name": "CDSCompaniesHouseMerge",
+                "type": "ExecuteDataFlow",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "dataflow": {
+                    "referenceName": "CDSCompaniesHouseMerge",
+                    "type": "DataFlowReference",
+                    "parameters": {},
+                    "datasetParameters": {
+                      "CDSAccounts": {},
+                      "CompaniesHouse": {},
+                      "AggregateCSV": {},
+                      "CompaniesHouseAppended": {}
+                    }
+                  },
+                  "staging": {},
+                  "compute": {
+                    "coreCount": 8,
+                    "computeType": "General"
+                  },
+                  "traceLevel": "Fine"
+                }
+              }
+            ],
+            "annotations": [],
+            "lastPublishTime": "2020-11-19T11:54:47Z"
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/dataflows/CDSCompaniesHouseMerge')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/SynapseDataLoadExample')]",
+          "type": "Microsoft.DataFactory/factories/pipelines",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "activities": [
+              {
+                "name": "LoadCHAppendedBlobToSynapse",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "DelimitedTextSource",
+                    "storeSettings": {
+                      "type": "AzureBlobFSReadSettings",
+                      "recursive": true,
+                      "wildcardFileName": "part-*"
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextReadSettings"
+                    }
+                  },
+                  "sink": {
+                    "type": "SqlDWSink",
+                    "preCopyScript": "TRUNCATE TABLE AZDataTalk.stg_CompaniesHouse",
+                    "disableMetricsCollection": false
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "mappings": [
+                      {
+                        "source": {
+                          "name": "accountid",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "accountid",
+                          "type": "Guid",
+                          "physicalType": "uniqueidentifier"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "CompanyName",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "CompanyName",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": " CompanyNumber",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "CompanyNumber",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "CompanyCategory",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "CompanyCategory",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "IncorporationDate",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "IncorporationDate",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Accounts.AccountRefDay",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Accounts_AccountRefDay",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Accounts.AccountRefMonth",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Accounts_AccountRefMonth",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Accounts.NextDueDate",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Accounts_NextDueDate",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Accounts.LastMadeUpDate",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Accounts_LastMadeUpDate",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Accounts.AccountCategory",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Accounts_AccountCategory",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Returns.NextDueDate",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Returns_NextDueDate",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Returns.LastMadeUpDate",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Returns_LastMadeUpDate",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Mortgages.NumMortCharges",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Mortgages_NumMortCharges",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Mortgages.NumMortOutstanding",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Mortgages_NumMortOutstanding",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Mortgages.NumMortPartSatisfied",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Mortgages_NumMortPartSatisfied",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "Mortgages.NumMortSatisfied",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "Mortgages_NumMortSatisfied",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "SICCode.SicText_1",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "SICCode_SicText_1",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "SICCode.SicText_2",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "SICCode_SicText_2",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "SICCode.SicText_3",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "SICCode_SicText_3",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "SICCode.SicText_4",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "SICCode_SicText_4",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "LimitedPartnerships.NumGenPartners",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "LimitedPartnerships_NumGenPartners",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "LimitedPartnerships.NumLimPartners",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "LimitedPartnerships_NumLimPartners",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "URI",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "URI",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "ConfStmtNextDueDate",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "ConfStmtNextDueDate",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": " ConfStmtLastMadeUpDate",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "ConfStmtLastMadeUpDate",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "RegAddress.PostCode",
+                          "type": "String"
+                        },
+                        "sink": {
+                          "name": "RegAddress_PostCode"
+                        }
+                      }
+                    ],
+                    "typeConversion": true,
+                    "typeConversionSettings": {
+                      "allowDataTruncation": true,
+                      "treatBooleanAsNumber": false
+                    }
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "CompaniesHouseAppended",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "AZDataTalk_stg_CompaniesHouse",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ]
+              },
+              {
+                "name": "LoadCHAggregatesBlobToSynapse",
+                "type": "Copy",
+                "dependsOn": [
+                  {
+                    "activity": "LoadCHAppendedBlobToSynapse",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "source": {
+                    "type": "DelimitedTextSource",
+                    "storeSettings": {
+                      "type": "AzureBlobStorageReadSettings",
+                      "recursive": true,
+                      "wildcardFileName": "aggregate*"
+                    },
+                    "formatSettings": {
+                      "type": "DelimitedTextReadSettings"
+                    }
+                  },
+                  "sink": {
+                    "type": "SqlDWSink",
+                    "preCopyScript": "TRUNCATE TABLE AZDataTalk.stg_CompaniesHouseAggregates",
+                    "disableMetricsCollection": false
+                  },
+                  "enableStaging": false,
+                  "translator": {
+                    "type": "TabularTranslator",
+                    "mappings": [
+                      {
+                        "source": {
+                          "name": "SICCode.SicText_1",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "SICCode_SicText_1",
+                          "type": "String",
+                          "physicalType": "nvarchar"
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "revenue",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "revenue",
+                          "type": "Decimal",
+                          "physicalType": "money",
+                          "scale": 4,
+                          "precision": 19
+                        }
+                      },
+                      {
+                        "source": {
+                          "name": "count",
+                          "type": "String",
+                          "physicalType": "String"
+                        },
+                        "sink": {
+                          "name": "count",
+                          "type": "Int32",
+                          "physicalType": "int"
+                        }
+                      }
+                    ],
+                    "typeConversion": true,
+                    "typeConversionSettings": {
+                      "allowDataTruncation": true,
+                      "treatBooleanAsNumber": false
+                    }
+                  }
+                },
+                "inputs": [
+                  {
+                    "referenceName": "AggregateCSV",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ],
+                "outputs": [
+                  {
+                    "referenceName": "AZDataTalk_stg_CompaniesHouseAggregates",
+                    "type": "DatasetReference",
+                    "parameters": {}
+                  }
+                ]
+              },
+              {
+                "name": "ExecuteuspMergeCompaniesHouse",
+                "type": "SqlServerStoredProcedure",
+                "dependsOn": [
+                  {
+                    "activity": "LoadCHAggregatesBlobToSynapse",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "storedProcedureName": "[[AZDataTalk].[usp_MergeCompaniesHouse]"
+                },
+                "linkedServiceName": {
+                  "referenceName": "AzureSynapseAnalytics",
+                  "type": "LinkedServiceReference"
+                }
+              },
+              {
+                "name": "ExecuteuspMergeCompaniesHouseAggregates",
+                "type": "SqlServerStoredProcedure",
+                "dependsOn": [
+                  {
+                    "activity": "ExecuteuspMergeCompaniesHouse",
+                    "dependencyConditions": [
+                      "Succeeded"
+                    ]
+                  }
+                ],
+                "policy": {
+                  "timeout": "7.00:00:00",
+                  "retry": 0,
+                  "retryIntervalInSeconds": 30,
+                  "secureOutput": false,
+                  "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                  "storedProcedureName": "[[AZDataTalk].[usp_MergeCompaniesHouseAggregates]"
+                },
+                "linkedServiceName": {
+                  "referenceName": "AzureSynapseAnalytics",
+                  "type": "LinkedServiceReference"
+                }
+              }
+            ],
+            "annotations": [],
+            "lastPublishTime": "2020-11-30T09:50:13Z"
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/datasets/CompaniesHouseAppended')]",
+            "[concat(variables('factoryId'), '/datasets/AZDataTalk_stg_CompaniesHouse')]",
+            "[concat(variables('factoryId'), '/datasets/AggregateCSV')]",
+            "[concat(variables('factoryId'), '/datasets/AZDataTalk_stg_CompaniesHouseAggregates')]",
+            "[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalytics')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/AzureDataLakeStorage')]",
+          "type": "Microsoft.DataFactory/factories/linkedServices",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "annotations": [],
+            "type": "AzureBlobFS",
+            "typeProperties": {
+              "url": "[parameters('AzureDataLakeStorage_properties_typeProperties_url')]",
+              "accountKey": {
+                "type": "SecureString",
+                "value": "[parameters('AzureDataLakeStorage_accountKey')]"
+              }
+            }
+          },
+          "dependsOn": []
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/AzureBlobStorage')]",
+          "type": "Microsoft.DataFactory/factories/linkedServices",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "annotations": [],
+            "type": "AzureBlobStorage",
+            "typeProperties": {
+              "connectionString": "[parameters('AzureBlobStorage_connectionString')]"
+            }
+          },
+          "dependsOn": []
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/AzureSynapseAnalytics')]",
+          "type": "Microsoft.DataFactory/factories/linkedServices",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "annotations": [],
+            "type": "AzureSqlDW",
+            "typeProperties": {
+              "connectionString": "[parameters('AzureSynapseAnalytics_connectionString')]"
+            }
+          },
+          "dependsOn": []
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/CDSCompaniesHouseMerge')]",
+          "type": "Microsoft.DataFactory/factories/dataflows",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "type": "MappingDataFlow",
+            "typeProperties": {
+              "sources": [
+                {
+                  "linkedService": {
+                    "referenceName": "AzureDataLakeStorage",
+                    "type": "LinkedServiceReference"
+                  },
+                  "name": "CDSAccounts"
+                },
+                {
+                  "dataset": {
+                    "referenceName": "CompaniesHouse",
+                    "type": "DatasetReference"
+                  },
+                  "name": "CompaniesHouse"
+                }
+              ],
+              "sinks": [
+                {
+                  "dataset": {
+                    "referenceName": "AggregateCSV",
+                    "type": "DatasetReference"
+                  },
+                  "name": "AggregateCSV"
+                },
+                {
+                  "dataset": {
+                    "referenceName": "CompaniesHouseAppended",
+                    "type": "DatasetReference"
+                  },
+                  "name": "CompaniesHouseAppended"
+                }
+              ],
+              "transformations": [
+                {
+                  "name": "JoinedAccounts"
+                },
+                {
+                  "name": "TurnoverBySIC"
+                },
+                {
+                  "name": "HighLevelSIC"
+                }
+              ],
+              "script": "source(output(\n\t\tId as string,\n\t\tSinkCreatedOn as timestamp,\n\t\tSinkModifiedOn as timestamp,\n\t\tstatecode as long,\n\t\tstatuscode as long,\n\t\tpreferredcontactmethodcode as long,\n\t\taccountratingcode as long,\n\t\taddress1_shippingmethodcode as long,\n\t\tbusinesstypecode as long,\n\t\tindustrycode as long,\n\t\tshippingmethodcode as long,\n\t\tpreferredappointmenttimecode as long,\n\t\taddress2_shippingmethodcode as long,\n\t\tterritorycode as long,\n\t\tpreferredappointmentdaycode as long,\n\t\tpaymenttermscode as long,\n\t\taccountclassificationcode as long,\n\t\taddress1_addresstypecode as long,\n\t\townershipcode as long,\n\t\taddress2_freighttermscode as long,\n\t\taddress2_addresstypecode as long,\n\t\taddress1_freighttermscode as long,\n\t\tcustomersizecode as long,\n\t\tcustomertypecode as long,\n\t\taccountcategorycode as long,\n\t\tdonotpostalmail as boolean,\n\t\tmarketingonly as boolean,\n\t\tdonotbulkemail as boolean,\n\t\tdonotbulkpostalmail as boolean,\n\t\tdonotphone as boolean,\n\t\tdonotsendmm as boolean,\n\t\tisprivate as boolean,\n\t\tparticipatesinworkflow as boolean,\n\t\tmerged as boolean,\n\t\tcreditonhold as boolean,\n\t\tdonotfax as boolean,\n\t\tdonotemail as boolean,\n\t\tfollowemail as boolean,\n\t\tmodifiedby as string,\n\t\tmodifiedby_entitytype as string,\n\t\tmodifiedonbehalfby as string,\n\t\tmodifiedonbehalfby_entitytype as string,\n\t\towningbusinessunit as string,\n\t\towningbusinessunit_entitytype as string,\n\t\tcreatedby as string,\n\t\tcreatedby_entitytype as string,\n\t\ttransactioncurrencyid as string,\n\t\ttransactioncurrencyid_entitytype as string,\n\t\tmodifiedbyexternalparty as string,\n\t\tmodifiedbyexternalparty_entitytype as string,\n\t\towninguser as string,\n\t\towninguser_entitytype as string,\n\t\towningteam as string,\n\t\towningteam_entitytype as string,\n\t\tcreatedonbehalfby as string,\n\t\tcreatedonbehalfby_entitytype as string,\n\t\tslainvokedid as string,\n\t\tslainvokedid_entitytype as string,\n\t\tmasterid as string,\n\t\tmasterid_entitytype as string,\n\t\tparentaccountid as string,\n\t\tparentaccountid_entitytype as string,\n\t\tpreferredsystemuserid as string,\n\t\tpreferredsystemuserid_entitytype as string,\n\t\tprimarycontactid as string,\n\t\tprimarycontactid_entitytype as string,\n\t\tslaid as string,\n\t\tslaid_entitytype as string,\n\t\tcreatedbyexternalparty as string,\n\t\tcreatedbyexternalparty_entitytype as string,\n\t\townerid as string,\n\t\townerid_entitytype as string,\n\t\taging90 as decimal(18,2),\n\t\tcreditlimit_base as decimal(18,2),\n\t\taging60_base as decimal(18,2),\n\t\tmarketcap as decimal(18,2),\n\t\trevenue_base as decimal(18,2),\n\t\taging60 as decimal(18,2),\n\t\tmarketcap_base as decimal(18,2),\n\t\trevenue as decimal(18,2),\n\t\taging90_base as decimal(18,2),\n\t\taging30_base as decimal(18,2),\n\t\tcreditlimit as decimal(18,2),\n\t\taging30 as decimal(18,2),\n\t\taddress2_postalcode as string,\n\t\taddress1_longitude as decimal(18,2),\n\t\taddress2_county as string,\n\t\tmasteraccountidname as string,\n\t\taddress1_county as string,\n\t\taddress2_line3 as string,\n\t\taddress2_longitude as decimal(18,2),\n\t\taddress1_telephone2 as string,\n\t\ttransactioncurrencyidname as string,\n\t\taddress1_upszone as string,\n\t\tprocessid as string,\n\t\taddress2_name as string,\n\t\taddress1_stateorprovince as string,\n\t\tmasteraccountidyominame as string,\n\t\temailaddress1 as string,\n\t\towneridyominame as string,\n\t\taddress1_country as string,\n\t\taddress2_upszone as string,\n\t\texchangerate as decimal(18,2),\n\t\taddress1_line2 as string,\n\t\tcreatedbyexternalpartyyominame as string,\n\t\taddress1_city as string,\n\t\taddress1_utcoffset as long,\n\t\taddress2_stateorprovince as string,\n\t\tversionnumber as long,\n\t\tentityimageid as string,\n\t\tmodifiedon as timestamp,\n\t\tcreatedon as timestamp,\n\t\taccountid as string,\n\t\taddress2_utcoffset as long,\n\t\tmodifiedbyyominame as string,\n\t\toverriddencreatedon as timestamp,\n\t\tmodifiedbyname as string,\n\t\tmodifiedonbehalfbyname as string,\n\t\tentityimage_url as string,\n\t\tprimarytwitterid as string,\n\t\taddress2_line2 as string,\n\t\tyominame as string,\n\t\taddress1_latitude as decimal(18,2),\n\t\tprimarysatoriid as string,\n\t\tfax as string,\n\t\ttimezoneruleversionnumber as long,\n\t\tcreatedonbehalfbyyominame as string,\n\t\taddress2_composite as string,\n\t\towneridtype as string,\n\t\taddress1_name as string,\n\t\tparentaccountidname as string,\n\t\ttelephone3 as string,\n\t\tparentaccountidyominame as string,\n\t\tentityimage_timestamp as long,\n\t\tmodifiedbyexternalpartyname as string,\n\t\temailaddress3 as string,\n\t\temailaddress2 as string,\n\t\taddress2_country as string,\n\t\ttelephone2 as string,\n\t\tcreatedbyexternalpartyname as string,\n\t\tlastusedincampaign as timestamp,\n\t\taccountnumber as string,\n\t\ttraversedpath as string,\n\t\tprimarycontactidname as string,\n\t\ttimespentbymeonemailandmeetings as string,\n\t\taddress1_primarycontactname as string,\n\t\tpreferredsystemuseridname as string,\n\t\tcreatedonbehalfbyname as string,\n\t\taddress2_postofficebox as string,\n\t\taddress2_latitude as decimal(18,2),\n\t\tmodifiedbyexternalpartyyominame as string,\n\t\tprimarycontactidyominame as string,\n\t\tslaname as string,\n\t\taddress1_composite as string,\n\t\tftpsiteurl as string,\n\t\tsic as string,\n\t\taddress2_line1 as string,\n\t\tlastonholdtime as timestamp,\n\t\taddress1_telephone1 as string,\n\t\taddress2_fax as string,\n\t\taddress1_telephone3 as string,\n\t\tdescription as string,\n\t\tstageid as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tutcconversiontimezonecode as long,\n\t\tstockexchange as string,\n\t\taddress1_addressid as string,\n\t\taddress2_city as string,\n\t\taddress2_primarycontactname as string,\n\t\taddress2_addressid as string,\n\t\tonholdtime as long,\n\t\taddress1_line1 as string,\n\t\taddress1_line3 as string,\n\t\tcreatedbyyominame as string,\n\t\taddress2_telephone1 as string,\n\t\taddress2_telephone2 as string,\n\t\taddress2_telephone3 as string,\n\t\taddress1_postofficebox as string,\n\t\tcreatedbyname as string,\n\t\ttickersymbol as string,\n\t\tnumberofemployees as long,\n\t\towneridname as string,\n\t\tmodifiedonbehalfbyyominame as string,\n\t\taddress1_fax as string,\n\t\timportsequencenumber as long,\n\t\tname as string,\n\t\tslainvokedidname as string,\n\t\tpreferredsystemuseridyominame as string,\n\t\tsharesoutstanding as long,\n\t\taddress1_postalcode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tentity: 'account',\n\tformat: 'cdm',\n\tmanifestType: 'model',\n\tfolderPath: '',\n\tfileSystem: 'commondataservice-azuredatasol-b4a66a59b2c445568bac02317e787a') ~> CDSAccounts\nsource(output(\n\t\tCompanyName as string,\n\t\t{ CompanyNumber} as string,\n\t\t{RegAddress.CareOf} as string,\n\t\t{RegAddress.POBox} as string,\n\t\t{RegAddress.AddressLine1} as string,\n\t\t{ RegAddress.AddressLine2} as string,\n\t\t{RegAddress.PostTown} as string,\n\t\t{RegAddress.County} as string,\n\t\t{RegAddress.Country} as string,\n\t\t{RegAddress.PostCode} as string,\n\t\tCompanyCategory as string,\n\t\tCompanyStatus as string,\n\t\tCountryOfOrigin as string,\n\t\tDissolutionDate as string,\n\t\tIncorporationDate as string,\n\t\t{Accounts.AccountRefDay} as string,\n\t\t{Accounts.AccountRefMonth} as string,\n\t\t{Accounts.NextDueDate} as string,\n\t\t{Accounts.LastMadeUpDate} as string,\n\t\t{Accounts.AccountCategory} as string,\n\t\t{Returns.NextDueDate} as string,\n\t\t{Returns.LastMadeUpDate} as string,\n\t\t{Mortgages.NumMortCharges} as string,\n\t\t{Mortgages.NumMortOutstanding} as string,\n\t\t{Mortgages.NumMortPartSatisfied} as string,\n\t\t{Mortgages.NumMortSatisfied} as string,\n\t\t{SICCode.SicText_1} as string,\n\t\t{SICCode.SicText_2} as string,\n\t\t{SICCode.SicText_3} as string,\n\t\t{SICCode.SicText_4} as string,\n\t\t{LimitedPartnerships.NumGenPartners} as string,\n\t\t{LimitedPartnerships.NumLimPartners} as string,\n\t\tURI as string,\n\t\t{PreviousName_1.CONDATE} as string,\n\t\t{ PreviousName_1.CompanyName} as string,\n\t\t{ PreviousName_2.CONDATE} as string,\n\t\t{ PreviousName_2.CompanyName} as string,\n\t\t{PreviousName_3.CONDATE} as string,\n\t\t{ PreviousName_3.CompanyName} as string,\n\t\t{PreviousName_4.CONDATE} as string,\n\t\t{ PreviousName_4.CompanyName} as string,\n\t\t{PreviousName_5.CONDATE} as string,\n\t\t{ PreviousName_5.CompanyName} as string,\n\t\t{PreviousName_6.CONDATE} as string,\n\t\t{ PreviousName_6.CompanyName} as string,\n\t\t{PreviousName_7.CONDATE} as string,\n\t\t{ PreviousName_7.CompanyName} as string,\n\t\t{PreviousName_8.CONDATE} as string,\n\t\t{ PreviousName_8.CompanyName} as string,\n\t\t{PreviousName_9.CONDATE} as string,\n\t\t{ PreviousName_9.CompanyName} as string,\n\t\t{PreviousName_10.CONDATE} as string,\n\t\t{ PreviousName_10.CompanyName} as string,\n\t\tConfStmtNextDueDate as string,\n\t\t{ ConfStmtLastMadeUpDate} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> CompaniesHouse\nHighLevelSIC, CDSAccounts join({ CompanyNumber} == accountnumber,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinedAccounts\nJoinedAccounts aggregate(groupBy({SICCode.SicText_1}),\n\trevenue = sum(revenue),\n\t\tcount = count(accountid)) ~> TurnoverBySIC\nCompaniesHouse derive(SICCode2 = left({SICCode.SicText_1}, 2),\n\t\tSICCode3 = left({SICCode.SicText_1}, 3),\n\t\tSICCode4 = left({SICCode.SicText_1}, 4)) ~> HighLevelSIC\nTurnoverBySIC sink(input(\n\t\t{SICCode.SicText_1} as string,\n\t\trevenue as string,\n\t\tcount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['aggregate.csv'],\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> AggregateCSV\nJoinedAccounts sink(input(\n\t\tCompanyName as string,\n\t\t{ CompanyNumber} as string,\n\t\t{RegAddress.CareOf} as string,\n\t\t{RegAddress.POBox} as string,\n\t\t{RegAddress.AddressLine1} as string,\n\t\t{ RegAddress.AddressLine2} as string,\n\t\t{RegAddress.PostTown} as string,\n\t\t{RegAddress.County} as string,\n\t\t{RegAddress.Country} as string,\n\t\t{RegAddress.PostCode} as string,\n\t\tCompanyCategory as string,\n\t\tCompanyStatus as string,\n\t\tCountryOfOrigin as string,\n\t\tDissolutionDate as string,\n\t\tIncorporationDate as string,\n\t\t{Accounts.AccountRefDay} as string,\n\t\t{Accounts.AccountRefMonth} as string,\n\t\t{Accounts.NextDueDate} as string,\n\t\t{Accounts.LastMadeUpDate} as string,\n\t\t{Accounts.AccountCategory} as string,\n\t\t{Returns.NextDueDate} as string,\n\t\t{Returns.LastMadeUpDate} as string,\n\t\t{Mortgages.NumMortCharges} as string,\n\t\t{Mortgages.NumMortOutstanding} as string,\n\t\t{Mortgages.NumMortPartSatisfied} as string,\n\t\t{Mortgages.NumMortSatisfied} as string,\n\t\t{SICCode.SicText_1} as string,\n\t\t{SICCode.SicText_2} as string,\n\t\t{SICCode.SicText_3} as string,\n\t\t{SICCode.SicText_4} as string,\n\t\t{LimitedPartnerships.NumGenPartners} as string,\n\t\t{LimitedPartnerships.NumLimPartners} as string,\n\t\tURI as string,\n\t\t{PreviousName_1.CONDATE} as string,\n\t\t{ PreviousName_1.CompanyName} as string,\n\t\t{ PreviousName_2.CONDATE} as string,\n\t\t{ PreviousName_2.CompanyName} as string,\n\t\t{PreviousName_3.CONDATE} as string,\n\t\t{ PreviousName_3.CompanyName} as string,\n\t\t{PreviousName_4.CONDATE} as string,\n\t\t{ PreviousName_4.CompanyName} as string,\n\t\t{PreviousName_5.CONDATE} as string,\n\t\t{ PreviousName_5.CompanyName} as string,\n\t\t{PreviousName_6.CONDATE} as string,\n\t\t{ PreviousName_6.CompanyName} as string,\n\t\t{PreviousName_7.CONDATE} as string,\n\t\t{ PreviousName_7.CompanyName} as string,\n\t\t{PreviousName_8.CONDATE} as string,\n\t\t{ PreviousName_8.CompanyName} as string,\n\t\t{PreviousName_9.CONDATE} as string,\n\t\t{ PreviousName_9.CompanyName} as string,\n\t\t{PreviousName_10.CONDATE} as string,\n\t\t{ PreviousName_10.CompanyName} as string,\n\t\tConfStmtNextDueDate as string,\n\t\t{ ConfStmtLastMadeUpDate} as string,\n\t\tSICCode2 as string,\n\t\tSICCode3 as string,\n\t\tSICCode4 as string,\n\t\tId as string,\n\t\tSinkCreatedOn as string,\n\t\tSinkModifiedOn as string,\n\t\tstatecode as string,\n\t\tstatuscode as string,\n\t\tpreferredcontactmethodcode as string,\n\t\taccountratingcode as string,\n\t\taddress1_shippingmethodcode as string,\n\t\tbusinesstypecode as string,\n\t\tindustrycode as string,\n\t\tshippingmethodcode as string,\n\t\tpreferredappointmenttimecode as string,\n\t\taddress2_shippingmethodcode as string,\n\t\tterritorycode as string,\n\t\tpreferredappointmentdaycode as string,\n\t\tpaymenttermscode as string,\n\t\taccountclassificationcode as string,\n\t\taddress1_addresstypecode as string,\n\t\townershipcode as string,\n\t\taddress2_freighttermscode as string,\n\t\taddress2_addresstypecode as string,\n\t\taddress1_freighttermscode as string,\n\t\tcustomersizecode as string,\n\t\tcustomertypecode as string,\n\t\taccountcategorycode as string,\n\t\tdonotpostalmail as string,\n\t\tmarketingonly as string,\n\t\tdonotbulkemail as string,\n\t\tdonotbulkpostalmail as string,\n\t\tdonotphone as string,\n\t\tdonotsendmm as string,\n\t\tisprivate as string,\n\t\tparticipatesinworkflow as string,\n\t\tmerged as string,\n\t\tcreditonhold as string,\n\t\tdonotfax as string,\n\t\tdonotemail as string,\n\t\tfollowemail as string,\n\t\tmodifiedby as string,\n\t\tmodifiedby_entitytype as string,\n\t\tmodifiedonbehalfby as string,\n\t\tmodifiedonbehalfby_entitytype as string,\n\t\towningbusinessunit as string,\n\t\towningbusinessunit_entitytype as string,\n\t\tcreatedby as string,\n\t\tcreatedby_entitytype as string,\n\t\ttransactioncurrencyid as string,\n\t\ttransactioncurrencyid_entitytype as string,\n\t\tmodifiedbyexternalparty as string,\n\t\tmodifiedbyexternalparty_entitytype as string,\n\t\towninguser as string,\n\t\towninguser_entitytype as string,\n\t\towningteam as string,\n\t\towningteam_entitytype as string,\n\t\tcreatedonbehalfby as string,\n\t\tcreatedonbehalfby_entitytype as string,\n\t\tslainvokedid as string,\n\t\tslainvokedid_entitytype as string,\n\t\tmasterid as string,\n\t\tmasterid_entitytype as string,\n\t\tparentaccountid as string,\n\t\tparentaccountid_entitytype as string,\n\t\tpreferredsystemuserid as string,\n\t\tpreferredsystemuserid_entitytype as string,\n\t\tprimarycontactid as string,\n\t\tprimarycontactid_entitytype as string,\n\t\tslaid as string,\n\t\tslaid_entitytype as string,\n\t\tcreatedbyexternalparty as string,\n\t\tcreatedbyexternalparty_entitytype as string,\n\t\townerid as string,\n\t\townerid_entitytype as string,\n\t\taging90 as string,\n\t\tcreditlimit_base as string,\n\t\taging60_base as string,\n\t\tmarketcap as string,\n\t\trevenue_base as string,\n\t\taging60 as string,\n\t\tmarketcap_base as string,\n\t\trevenue as string,\n\t\taging90_base as string,\n\t\taging30_base as string,\n\t\tcreditlimit as string,\n\t\taging30 as string,\n\t\taddress2_postalcode as string,\n\t\taddress1_longitude as string,\n\t\taddress2_county as string,\n\t\tmasteraccountidname as string,\n\t\taddress1_county as string,\n\t\taddress2_line3 as string,\n\t\taddress2_longitude as string,\n\t\taddress1_telephone2 as string,\n\t\ttransactioncurrencyidname as string,\n\t\taddress1_upszone as string,\n\t\tprocessid as string,\n\t\taddress2_name as string,\n\t\taddress1_stateorprovince as string,\n\t\tmasteraccountidyominame as string,\n\t\temailaddress1 as string,\n\t\towneridyominame as string,\n\t\taddress1_country as string,\n\t\taddress2_upszone as string,\n\t\texchangerate as string,\n\t\taddress1_line2 as string,\n\t\tcreatedbyexternalpartyyominame as string,\n\t\taddress1_city as string,\n\t\taddress1_utcoffset as string,\n\t\taddress2_stateorprovince as string,\n\t\tversionnumber as string,\n\t\tentityimageid as string,\n\t\tmodifiedon as string,\n\t\tcreatedon as string,\n\t\taccountid as string,\n\t\taddress2_utcoffset as string,\n\t\tmodifiedbyyominame as string,\n\t\toverriddencreatedon as string,\n\t\tmodifiedbyname as string,\n\t\tmodifiedonbehalfbyname as string,\n\t\tentityimage_url as string,\n\t\tprimarytwitterid as string,\n\t\taddress2_line2 as string,\n\t\tyominame as string,\n\t\taddress1_latitude as string,\n\t\tprimarysatoriid as string,\n\t\tfax as string,\n\t\ttimezoneruleversionnumber as string,\n\t\tcreatedonbehalfbyyominame as string,\n\t\taddress2_composite as string,\n\t\towneridtype as string,\n\t\taddress1_name as string,\n\t\tparentaccountidname as string,\n\t\ttelephone3 as string,\n\t\tparentaccountidyominame as string,\n\t\tentityimage_timestamp as string,\n\t\tmodifiedbyexternalpartyname as string,\n\t\temailaddress3 as string,\n\t\temailaddress2 as string,\n\t\taddress2_country as string,\n\t\ttelephone2 as string,\n\t\tcreatedbyexternalpartyname as string,\n\t\tlastusedincampaign as string,\n\t\taccountnumber as string,\n\t\ttraversedpath as string,\n\t\tprimarycontactidname as string,\n\t\ttimespentbymeonemailandmeetings as string,\n\t\taddress1_primarycontactname as string,\n\t\tpreferredsystemuseridname as string,\n\t\tcreatedonbehalfbyname as string,\n\t\taddress2_postofficebox as string,\n\t\taddress2_latitude as string,\n\t\tmodifiedbyexternalpartyyominame as string,\n\t\tprimarycontactidyominame as string,\n\t\tslaname as string,\n\t\taddress1_composite as string,\n\t\tftpsiteurl as string,\n\t\tsic as string,\n\t\taddress2_line1 as string,\n\t\tlastonholdtime as string,\n\t\taddress1_telephone1 as string,\n\t\taddress2_fax as string,\n\t\taddress1_telephone3 as string,\n\t\tdescription as string,\n\t\tstageid as string,\n\t\ttelephone1 as string,\n\t\twebsiteurl as string,\n\t\tutcconversiontimezonecode as string,\n\t\tstockexchange as string,\n\t\taddress1_addressid as string,\n\t\taddress2_city as string,\n\t\taddress2_primarycontactname as string,\n\t\taddress2_addressid as string,\n\t\tonholdtime as string,\n\t\taddress1_line1 as string,\n\t\taddress1_line3 as string,\n\t\tcreatedbyyominame as string,\n\t\taddress2_telephone1 as string,\n\t\taddress2_telephone2 as string,\n\t\taddress2_telephone3 as string,\n\t\taddress1_postofficebox as string,\n\t\tcreatedbyname as string,\n\t\ttickersymbol as string,\n\t\tnumberofemployees as string,\n\t\towneridname as string,\n\t\tmodifiedonbehalfbyyominame as string,\n\t\taddress1_fax as string,\n\t\timportsequencenumber as string,\n\t\tname as string,\n\t\tslainvokedidname as string,\n\t\tpreferredsystemuseridyominame as string,\n\t\tsharesoutstanding as string,\n\t\taddress1_postalcode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\ttruncate: true) ~> CompaniesHouseAppended"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]",
+            "[concat(variables('factoryId'), '/datasets/CompaniesHouse')]",
+            "[concat(variables('factoryId'), '/datasets/AggregateCSV')]",
+            "[concat(variables('factoryId'), '/datasets/CompaniesHouseAppended')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/AggregateCSV')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "AzureBlobStorage",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "container": "companieshouse"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "SICCode.SicText_1",
+                "type": "String"
+              },
+              {
+                "name": "revenue",
+                "type": "String"
+              },
+              {
+                "name": "count",
+                "type": "String"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/CompaniesHouse')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "AzureBlobStorage",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": "BasicCompanyDataAsOneFile-2020-11-01.csv",
+                "container": "companieshouse"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "CompanyName",
+                "type": "String"
+              },
+              {
+                "name": " CompanyNumber",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.CareOf",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.POBox",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.AddressLine1",
+                "type": "String"
+              },
+              {
+                "name": " RegAddress.AddressLine2",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.PostTown",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.County",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.Country",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.PostCode",
+                "type": "String"
+              },
+              {
+                "name": "CompanyCategory",
+                "type": "String"
+              },
+              {
+                "name": "CompanyStatus",
+                "type": "String"
+              },
+              {
+                "name": "CountryOfOrigin",
+                "type": "String"
+              },
+              {
+                "name": "DissolutionDate",
+                "type": "String"
+              },
+              {
+                "name": "IncorporationDate",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.AccountRefDay",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.AccountRefMonth",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.NextDueDate",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.LastMadeUpDate",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.AccountCategory",
+                "type": "String"
+              },
+              {
+                "name": "Returns.NextDueDate",
+                "type": "String"
+              },
+              {
+                "name": "Returns.LastMadeUpDate",
+                "type": "String"
+              },
+              {
+                "name": "Mortgages.NumMortCharges",
+                "type": "String"
+              },
+              {
+                "name": "Mortgages.NumMortOutstanding",
+                "type": "String"
+              },
+              {
+                "name": "Mortgages.NumMortPartSatisfied",
+                "type": "String"
+              },
+              {
+                "name": "Mortgages.NumMortSatisfied",
+                "type": "String"
+              },
+              {
+                "name": "SICCode.SicText_1",
+                "type": "String"
+              },
+              {
+                "name": "SICCode.SicText_2",
+                "type": "String"
+              },
+              {
+                "name": "SICCode.SicText_3",
+                "type": "String"
+              },
+              {
+                "name": "SICCode.SicText_4",
+                "type": "String"
+              },
+              {
+                "name": "LimitedPartnerships.NumGenPartners",
+                "type": "String"
+              },
+              {
+                "name": "LimitedPartnerships.NumLimPartners",
+                "type": "String"
+              },
+              {
+                "name": "URI",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_1.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_1.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_2.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_2.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_3.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_3.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_4.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_4.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_5.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_5.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_6.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_6.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_7.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_7.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_8.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_8.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_9.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_9.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_10.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_10.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "ConfStmtNextDueDate",
+                "type": "String"
+              },
+              {
+                "name": " ConfStmtLastMadeUpDate",
+                "type": "String"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/CompaniesHouseAppended')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "AzureDataLakeStorage",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "DelimitedText",
+            "typeProperties": {
+              "location": {
+                "type": "AzureBlobFSLocation",
+                "fileSystem": "companieshouse"
+              },
+              "columnDelimiter": ",",
+              "escapeChar": "\\",
+              "firstRowAsHeader": true,
+              "quoteChar": "\""
+            },
+            "schema": [
+              {
+                "name": "CompanyName",
+                "type": "String"
+              },
+              {
+                "name": " CompanyNumber",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.CareOf",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.POBox",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.AddressLine1",
+                "type": "String"
+              },
+              {
+                "name": " RegAddress.AddressLine2",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.PostTown",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.County",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.Country",
+                "type": "String"
+              },
+              {
+                "name": "RegAddress.PostCode",
+                "type": "String"
+              },
+              {
+                "name": "CompanyCategory",
+                "type": "String"
+              },
+              {
+                "name": "CompanyStatus",
+                "type": "String"
+              },
+              {
+                "name": "CountryOfOrigin",
+                "type": "String"
+              },
+              {
+                "name": "DissolutionDate",
+                "type": "String"
+              },
+              {
+                "name": "IncorporationDate",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.AccountRefDay",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.AccountRefMonth",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.NextDueDate",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.LastMadeUpDate",
+                "type": "String"
+              },
+              {
+                "name": "Accounts.AccountCategory",
+                "type": "String"
+              },
+              {
+                "name": "Returns.NextDueDate",
+                "type": "String"
+              },
+              {
+                "name": "Returns.LastMadeUpDate",
+                "type": "String"
+              },
+              {
+                "name": "Mortgages.NumMortCharges",
+                "type": "String"
+              },
+              {
+                "name": "Mortgages.NumMortOutstanding",
+                "type": "String"
+              },
+              {
+                "name": "Mortgages.NumMortPartSatisfied",
+                "type": "String"
+              },
+              {
+                "name": "Mortgages.NumMortSatisfied",
+                "type": "String"
+              },
+              {
+                "name": "SICCode.SicText_1",
+                "type": "String"
+              },
+              {
+                "name": "SICCode.SicText_2",
+                "type": "String"
+              },
+              {
+                "name": "SICCode.SicText_3",
+                "type": "String"
+              },
+              {
+                "name": "SICCode.SicText_4",
+                "type": "String"
+              },
+              {
+                "name": "LimitedPartnerships.NumGenPartners",
+                "type": "String"
+              },
+              {
+                "name": "LimitedPartnerships.NumLimPartners",
+                "type": "String"
+              },
+              {
+                "name": "URI",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_1.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_1.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_2.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_2.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_3.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_3.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_4.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_4.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_5.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_5.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_6.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_6.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_7.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_7.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_8.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_8.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_9.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_9.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "PreviousName_10.CONDATE",
+                "type": "String"
+              },
+              {
+                "name": " PreviousName_10.CompanyName",
+                "type": "String"
+              },
+              {
+                "name": "ConfStmtNextDueDate",
+                "type": "String"
+              },
+              {
+                "name": " ConfStmtLastMadeUpDate",
+                "type": "String"
+              },
+              {
+                "name": "SICCode2",
+                "type": "String"
+              },
+              {
+                "name": "SICCode3",
+                "type": "String"
+              },
+              {
+                "name": "SICCode4",
+                "type": "String"
+              },
+              {
+                "name": "Id",
+                "type": "String"
+              },
+              {
+                "name": "SinkCreatedOn",
+                "type": "String"
+              },
+              {
+                "name": "SinkModifiedOn",
+                "type": "String"
+              },
+              {
+                "name": "statecode",
+                "type": "String"
+              },
+              {
+                "name": "statuscode",
+                "type": "String"
+              },
+              {
+                "name": "preferredcontactmethodcode",
+                "type": "String"
+              },
+              {
+                "name": "accountratingcode",
+                "type": "String"
+              },
+              {
+                "name": "address1_shippingmethodcode",
+                "type": "String"
+              },
+              {
+                "name": "businesstypecode",
+                "type": "String"
+              },
+              {
+                "name": "industrycode",
+                "type": "String"
+              },
+              {
+                "name": "shippingmethodcode",
+                "type": "String"
+              },
+              {
+                "name": "preferredappointmenttimecode",
+                "type": "String"
+              },
+              {
+                "name": "address2_shippingmethodcode",
+                "type": "String"
+              },
+              {
+                "name": "territorycode",
+                "type": "String"
+              },
+              {
+                "name": "preferredappointmentdaycode",
+                "type": "String"
+              },
+              {
+                "name": "paymenttermscode",
+                "type": "String"
+              },
+              {
+                "name": "accountclassificationcode",
+                "type": "String"
+              },
+              {
+                "name": "address1_addresstypecode",
+                "type": "String"
+              },
+              {
+                "name": "ownershipcode",
+                "type": "String"
+              },
+              {
+                "name": "address2_freighttermscode",
+                "type": "String"
+              },
+              {
+                "name": "address2_addresstypecode",
+                "type": "String"
+              },
+              {
+                "name": "address1_freighttermscode",
+                "type": "String"
+              },
+              {
+                "name": "customersizecode",
+                "type": "String"
+              },
+              {
+                "name": "customertypecode",
+                "type": "String"
+              },
+              {
+                "name": "accountcategorycode",
+                "type": "String"
+              },
+              {
+                "name": "donotpostalmail",
+                "type": "String"
+              },
+              {
+                "name": "marketingonly",
+                "type": "String"
+              },
+              {
+                "name": "donotbulkemail",
+                "type": "String"
+              },
+              {
+                "name": "donotbulkpostalmail",
+                "type": "String"
+              },
+              {
+                "name": "donotphone",
+                "type": "String"
+              },
+              {
+                "name": "donotsendmm",
+                "type": "String"
+              },
+              {
+                "name": "isprivate",
+                "type": "String"
+              },
+              {
+                "name": "participatesinworkflow",
+                "type": "String"
+              },
+              {
+                "name": "merged",
+                "type": "String"
+              },
+              {
+                "name": "creditonhold",
+                "type": "String"
+              },
+              {
+                "name": "donotfax",
+                "type": "String"
+              },
+              {
+                "name": "donotemail",
+                "type": "String"
+              },
+              {
+                "name": "followemail",
+                "type": "String"
+              },
+              {
+                "name": "modifiedby",
+                "type": "String"
+              },
+              {
+                "name": "modifiedby_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "modifiedonbehalfby",
+                "type": "String"
+              },
+              {
+                "name": "modifiedonbehalfby_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "owningbusinessunit",
+                "type": "String"
+              },
+              {
+                "name": "owningbusinessunit_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "createdby",
+                "type": "String"
+              },
+              {
+                "name": "createdby_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "transactioncurrencyid",
+                "type": "String"
+              },
+              {
+                "name": "transactioncurrencyid_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "modifiedbyexternalparty",
+                "type": "String"
+              },
+              {
+                "name": "modifiedbyexternalparty_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "owninguser",
+                "type": "String"
+              },
+              {
+                "name": "owninguser_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "owningteam",
+                "type": "String"
+              },
+              {
+                "name": "owningteam_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "createdonbehalfby",
+                "type": "String"
+              },
+              {
+                "name": "createdonbehalfby_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "slainvokedid",
+                "type": "String"
+              },
+              {
+                "name": "slainvokedid_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "masterid",
+                "type": "String"
+              },
+              {
+                "name": "masterid_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "parentaccountid",
+                "type": "String"
+              },
+              {
+                "name": "parentaccountid_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "preferredsystemuserid",
+                "type": "String"
+              },
+              {
+                "name": "preferredsystemuserid_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "primarycontactid",
+                "type": "String"
+              },
+              {
+                "name": "primarycontactid_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "slaid",
+                "type": "String"
+              },
+              {
+                "name": "slaid_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "createdbyexternalparty",
+                "type": "String"
+              },
+              {
+                "name": "createdbyexternalparty_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "ownerid",
+                "type": "String"
+              },
+              {
+                "name": "ownerid_entitytype",
+                "type": "String"
+              },
+              {
+                "name": "aging90",
+                "type": "String"
+              },
+              {
+                "name": "creditlimit_base",
+                "type": "String"
+              },
+              {
+                "name": "aging60_base",
+                "type": "String"
+              },
+              {
+                "name": "marketcap",
+                "type": "String"
+              },
+              {
+                "name": "revenue_base",
+                "type": "String"
+              },
+              {
+                "name": "aging60",
+                "type": "String"
+              },
+              {
+                "name": "marketcap_base",
+                "type": "String"
+              },
+              {
+                "name": "revenue",
+                "type": "String"
+              },
+              {
+                "name": "aging90_base",
+                "type": "String"
+              },
+              {
+                "name": "aging30_base",
+                "type": "String"
+              },
+              {
+                "name": "creditlimit",
+                "type": "String"
+              },
+              {
+                "name": "aging30",
+                "type": "String"
+              },
+              {
+                "name": "address2_postalcode",
+                "type": "String"
+              },
+              {
+                "name": "address1_longitude",
+                "type": "String"
+              },
+              {
+                "name": "address2_county",
+                "type": "String"
+              },
+              {
+                "name": "masteraccountidname",
+                "type": "String"
+              },
+              {
+                "name": "address1_county",
+                "type": "String"
+              },
+              {
+                "name": "address2_line3",
+                "type": "String"
+              },
+              {
+                "name": "address2_longitude",
+                "type": "String"
+              },
+              {
+                "name": "address1_telephone2",
+                "type": "String"
+              },
+              {
+                "name": "transactioncurrencyidname",
+                "type": "String"
+              },
+              {
+                "name": "address1_upszone",
+                "type": "String"
+              },
+              {
+                "name": "processid",
+                "type": "String"
+              },
+              {
+                "name": "address2_name",
+                "type": "String"
+              },
+              {
+                "name": "address1_stateorprovince",
+                "type": "String"
+              },
+              {
+                "name": "masteraccountidyominame",
+                "type": "String"
+              },
+              {
+                "name": "emailaddress1",
+                "type": "String"
+              },
+              {
+                "name": "owneridyominame",
+                "type": "String"
+              },
+              {
+                "name": "address1_country",
+                "type": "String"
+              },
+              {
+                "name": "address2_upszone",
+                "type": "String"
+              },
+              {
+                "name": "exchangerate",
+                "type": "String"
+              },
+              {
+                "name": "address1_line2",
+                "type": "String"
+              },
+              {
+                "name": "createdbyexternalpartyyominame",
+                "type": "String"
+              },
+              {
+                "name": "address1_city",
+                "type": "String"
+              },
+              {
+                "name": "address1_utcoffset",
+                "type": "String"
+              },
+              {
+                "name": "address2_stateorprovince",
+                "type": "String"
+              },
+              {
+                "name": "versionnumber",
+                "type": "String"
+              },
+              {
+                "name": "entityimageid",
+                "type": "String"
+              },
+              {
+                "name": "modifiedon",
+                "type": "String"
+              },
+              {
+                "name": "createdon",
+                "type": "String"
+              },
+              {
+                "name": "accountid",
+                "type": "String"
+              },
+              {
+                "name": "address2_utcoffset",
+                "type": "String"
+              },
+              {
+                "name": "modifiedbyyominame",
+                "type": "String"
+              },
+              {
+                "name": "overriddencreatedon",
+                "type": "String"
+              },
+              {
+                "name": "modifiedbyname",
+                "type": "String"
+              },
+              {
+                "name": "modifiedonbehalfbyname",
+                "type": "String"
+              },
+              {
+                "name": "entityimage_url",
+                "type": "String"
+              },
+              {
+                "name": "primarytwitterid",
+                "type": "String"
+              },
+              {
+                "name": "address2_line2",
+                "type": "String"
+              },
+              {
+                "name": "yominame",
+                "type": "String"
+              },
+              {
+                "name": "address1_latitude",
+                "type": "String"
+              },
+              {
+                "name": "primarysatoriid",
+                "type": "String"
+              },
+              {
+                "name": "fax",
+                "type": "String"
+              },
+              {
+                "name": "timezoneruleversionnumber",
+                "type": "String"
+              },
+              {
+                "name": "createdonbehalfbyyominame",
+                "type": "String"
+              },
+              {
+                "name": "address2_composite",
+                "type": "String"
+              },
+              {
+                "name": "owneridtype",
+                "type": "String"
+              },
+              {
+                "name": "address1_name",
+                "type": "String"
+              },
+              {
+                "name": "parentaccountidname",
+                "type": "String"
+              },
+              {
+                "name": "telephone3",
+                "type": "String"
+              },
+              {
+                "name": "parentaccountidyominame",
+                "type": "String"
+              },
+              {
+                "name": "entityimage_timestamp",
+                "type": "String"
+              },
+              {
+                "name": "modifiedbyexternalpartyname",
+                "type": "String"
+              },
+              {
+                "name": "emailaddress3",
+                "type": "String"
+              },
+              {
+                "name": "emailaddress2",
+                "type": "String"
+              },
+              {
+                "name": "address2_country",
+                "type": "String"
+              },
+              {
+                "name": "telephone2",
+                "type": "String"
+              },
+              {
+                "name": "createdbyexternalpartyname",
+                "type": "String"
+              },
+              {
+                "name": "lastusedincampaign",
+                "type": "String"
+              },
+              {
+                "name": "accountnumber",
+                "type": "String"
+              },
+              {
+                "name": "traversedpath",
+                "type": "String"
+              },
+              {
+                "name": "primarycontactidname",
+                "type": "String"
+              },
+              {
+                "name": "timespentbymeonemailandmeetings",
+                "type": "String"
+              },
+              {
+                "name": "address1_primarycontactname",
+                "type": "String"
+              },
+              {
+                "name": "preferredsystemuseridname",
+                "type": "String"
+              },
+              {
+                "name": "createdonbehalfbyname",
+                "type": "String"
+              },
+              {
+                "name": "address2_postofficebox",
+                "type": "String"
+              },
+              {
+                "name": "address2_latitude",
+                "type": "String"
+              },
+              {
+                "name": "modifiedbyexternalpartyyominame",
+                "type": "String"
+              },
+              {
+                "name": "primarycontactidyominame",
+                "type": "String"
+              },
+              {
+                "name": "slaname",
+                "type": "String"
+              },
+              {
+                "name": "address1_composite",
+                "type": "String"
+              },
+              {
+                "name": "ftpsiteurl",
+                "type": "String"
+              },
+              {
+                "name": "sic",
+                "type": "String"
+              },
+              {
+                "name": "address2_line1",
+                "type": "String"
+              },
+              {
+                "name": "lastonholdtime",
+                "type": "String"
+              },
+              {
+                "name": "address1_telephone1",
+                "type": "String"
+              },
+              {
+                "name": "address2_fax",
+                "type": "String"
+              },
+              {
+                "name": "address1_telephone3",
+                "type": "String"
+              },
+              {
+                "name": "description",
+                "type": "String"
+              },
+              {
+                "name": "stageid",
+                "type": "String"
+              },
+              {
+                "name": "telephone1",
+                "type": "String"
+              },
+              {
+                "name": "websiteurl",
+                "type": "String"
+              },
+              {
+                "name": "utcconversiontimezonecode",
+                "type": "String"
+              },
+              {
+                "name": "stockexchange",
+                "type": "String"
+              },
+              {
+                "name": "address1_addressid",
+                "type": "String"
+              },
+              {
+                "name": "address2_city",
+                "type": "String"
+              },
+              {
+                "name": "address2_primarycontactname",
+                "type": "String"
+              },
+              {
+                "name": "address2_addressid",
+                "type": "String"
+              },
+              {
+                "name": "onholdtime",
+                "type": "String"
+              },
+              {
+                "name": "address1_line1",
+                "type": "String"
+              },
+              {
+                "name": "address1_line3",
+                "type": "String"
+              },
+              {
+                "name": "createdbyyominame",
+                "type": "String"
+              },
+              {
+                "name": "address2_telephone1",
+                "type": "String"
+              },
+              {
+                "name": "address2_telephone2",
+                "type": "String"
+              },
+              {
+                "name": "address2_telephone3",
+                "type": "String"
+              },
+              {
+                "name": "address1_postofficebox",
+                "type": "String"
+              },
+              {
+                "name": "createdbyname",
+                "type": "String"
+              },
+              {
+                "name": "tickersymbol",
+                "type": "String"
+              },
+              {
+                "name": "numberofemployees",
+                "type": "String"
+              },
+              {
+                "name": "owneridname",
+                "type": "String"
+              },
+              {
+                "name": "modifiedonbehalfbyyominame",
+                "type": "String"
+              },
+              {
+                "name": "address1_fax",
+                "type": "String"
+              },
+              {
+                "name": "importsequencenumber",
+                "type": "String"
+              },
+              {
+                "name": "name",
+                "type": "String"
+              },
+              {
+                "name": "slainvokedidname",
+                "type": "String"
+              },
+              {
+                "name": "preferredsystemuseridyominame",
+                "type": "String"
+              },
+              {
+                "name": "sharesoutstanding",
+                "type": "String"
+              },
+              {
+                "name": "address1_postalcode",
+                "type": "String"
+              }
+            ]
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/AZDataTalk_stg_CompaniesHouse')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "AzureSynapseAnalytics",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "AzureSqlDWTable",
+            "schema": [
+              {
+                "name": "accountid",
+                "type": "uniqueidentifier"
+              },
+              {
+                "name": "CompanyName",
+                "type": "nvarchar"
+              },
+              {
+                "name": "CompanyNumber",
+                "type": "nvarchar"
+              },
+              {
+                "name": "CompanyCategory",
+                "type": "nvarchar"
+              },
+              {
+                "name": "IncorporationDate",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Accounts_AccountRefDay",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Accounts_AccountRefMonth",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Accounts_NextDueDate",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Accounts_LastMadeUpDate",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Accounts_AccountCategory",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Returns_NextDueDate",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Returns_LastMadeUpDate",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Mortgages_NumMortCharges",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Mortgages_NumMortOutstanding",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Mortgages_NumMortPartSatisfied",
+                "type": "nvarchar"
+              },
+              {
+                "name": "Mortgages_NumMortSatisfied",
+                "type": "nvarchar"
+              },
+              {
+                "name": "SICCode_SicText_1",
+                "type": "nvarchar"
+              },
+              {
+                "name": "SICCode_SicText_2",
+                "type": "nvarchar"
+              },
+              {
+                "name": "SICCode_SicText_3",
+                "type": "nvarchar"
+              },
+              {
+                "name": "SICCode_SicText_4",
+                "type": "nvarchar"
+              },
+              {
+                "name": "LimitedPartnerships_NumGenPartners",
+                "type": "nvarchar"
+              },
+              {
+                "name": "LimitedPartnerships_NumLimPartners",
+                "type": "nvarchar"
+              },
+              {
+                "name": "URI",
+                "type": "nvarchar"
+              },
+              {
+                "name": "ConfStmtNextDueDate",
+                "type": "nvarchar"
+              },
+              {
+                "name": "ConfStmtLastMadeUpDate",
+                "type": "nvarchar"
+              }
+            ],
+            "typeProperties": {
+              "schema": "AZDataTalk",
+              "table": "stg_CompaniesHouse"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalytics')]"
+          ]
+        },
+        {
+          "name": "[concat(parameters('factoryName'), '/AZDataTalk_stg_CompaniesHouseAggregates')]",
+          "type": "Microsoft.DataFactory/factories/datasets",
+          "apiVersion": "2018-06-01",
+          "properties": {
+            "linkedServiceName": {
+              "referenceName": "AzureSynapseAnalytics",
+              "type": "LinkedServiceReference"
+            },
+            "annotations": [],
+            "type": "AzureSqlDWTable",
+            "schema": [
+              {
+                "name": "SICCode_SicText_1",
+                "type": "nvarchar"
+              },
+              {
+                "name": "revenue",
+                "type": "money",
+                "precision": 19,
+                "scale": 4
+              },
+              {
+                "name": "count",
+                "type": "int",
+                "precision": 10
+              }
+            ],
+            "typeProperties": {
+              "schema": "AZDataTalk",
+              "table": "stg_CompaniesHouseAggregates"
+            }
+          },
+          "dependsOn": [
+            "[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalytics')]"
+          ]
+        }
+      ]
+    }
+  ]
+}
