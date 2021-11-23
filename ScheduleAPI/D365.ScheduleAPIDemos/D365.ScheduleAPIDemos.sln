@@ -5,6 +5,11 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduleAPIConsoleDemo", "ScheduleAPIConsoleDemo\ScheduleAPIConsoleDemo.csproj", "{6EC480F6-E5F4-483A-BD78-365BA90B46FE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E9594BA2-B6D2-4A1F-AF4B-BBA54625DF98}"
+	ProjectSection(SolutionItems) = preProject
+		ScheduleAPIDemos_1_0_0_1.zip = ScheduleAPIDemos_1_0_0_1.zip
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
