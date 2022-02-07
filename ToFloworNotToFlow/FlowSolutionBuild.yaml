@@ -1,0 +1,41 @@
+name: $(TeamProject)_$(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+
+variables:
+- name: currentVersion
+  value: '1.0.0.$(Build.BuildID)'
+
+jobs:
+- job: PackageCheckandPublishSolutionArtifact
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - task: PowerPlatformToolInstaller@0
+    inputs:
+      DefaultVersion: true
+  - task: PowerPlatformPackSolution@0
+    displayName: 'Pack FlowSolution'
+    inputs:
+      SolutionSourceFolder: '$(Build.SourcesDirectory)\FlowSolution'
+      SolutionOutputFile: '$(Build.BinariesDirectory)\FlowSolution.zip'
+      SolutionType: 'Managed'
+  - task: CopyFiles@2
+    displayName: 'Copy Solution files as Artifacts'
+    inputs:
+      SourceFolder: '$(Build.BinariesDirectory)'
+      Contents: '*.zip'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)\Solutions'
+      OverWrite: true
+  - task: CopyFiles@2
+    displayName: 'Copy Environment Variable / Connection Reference config files as Artifacts'
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)'
+      Contents: 'FlowSolutionDeploymentSettings.json'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)\Solutions'
+      OverWrite: true
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)\Solutions'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'

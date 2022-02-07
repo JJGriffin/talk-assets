@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="jjg_DecimalEV">
+  <defaultvalue>1.25</defaultvalue>
+  <displayname default="Decimal EV">
+    <label description="Decimal EV" languagecode="1033" />
+  </displayname>
+  <introducedversion>1.0.0.1</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000001</type>
+</environmentvariabledefinition>

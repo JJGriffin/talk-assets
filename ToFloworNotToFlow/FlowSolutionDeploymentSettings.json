@@ -1,0 +1,28 @@
+{
+  "EnvironmentVariables": [
+    {
+      "SchemaName": "jjg_DecimalEV",
+      "Value": ""
+    },
+    {
+      "SchemaName": "jjg_TextEV",
+      "Value": ""
+    },
+    {
+      "SchemaName": "jjg_YesNoEV",
+      "Value": ""
+    }
+  ],
+  "ConnectionReferences": [
+    {
+      "LogicalName": "jjg_AzureBlobStorage",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_azureblob"
+    },
+    {
+      "LogicalName": "jjg_Dataverse",
+      "ConnectionId": "",
+      "ConnectorId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+    }
+  ]
+}
