@@ -64,7 +64,7 @@ namespace D365.CustomAPIs.Demos
                     }
                     else
                     {
-                        tracer.Trace($"Invalid operator supplied to the API. Expected +, -, / or *, actually got {operation}");
+                        tracer.Trace($"Invalid operator supplied to the API. Expected plus, minus, divide or multiply, actually got {operation}");
                         throw new Exception($"Looks like the operator {operation} isn't supported - D'oh!");
                     }         
                 }
