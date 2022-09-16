@@ -1,0 +1,5 @@
+# Reviewing the Power Platform Certification Landscape
+
+The number of Power Platform certifications has quadrupled in recent years. While this presents a challenge for individuals or organization's looking to validate their skills, it also provides more opportunities than before to devote yourself to learning a given topic, demonstrate your technical competency, and earn an industry-recognized accreditation in the process.
+
+To help those considering certification, this session will provide an end-to-end overview of all Business Application exams currently available to take. We'll evaluate each exam, the expected skills measured for each exam and tips and techniques to maximize your revision time. There will also be ample opportunities for attendees to get help on a particular exam. At the end of the session, we will equip attendees with the knowledge and resources they need to start their learning journey.
