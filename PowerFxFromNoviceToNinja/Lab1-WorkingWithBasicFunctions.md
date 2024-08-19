@@ -1,6 +1,6 @@
 # Lab 1 - Working with Basic Functions
 
-In this lab, you will experiment working with the most common functions in Power Fx, using the interactive Power Fx read, evaluation, print Loop within the PAC CLI.
+In this lab, you will experiment working with the most common functions in Power Fx, using the interactive Power Fx Read, Evaluation, Print, Loop (REPL) within the PAC CLI.
 
 ## Scenario
 
@@ -15,7 +15,7 @@ Through this experimentation, you plan to gain an understanding of the core func
 
 In this lab, you will do the following:
 
-- Connect to your Dataverse environment using the interactive Power Fx read, evaluation, print Loop, within the PAC CLI.
+- Connect to your Dataverse environment using the Power Fx REPL.
 - Execute some basic calculations within the PAC CLI.
 - Execute some basic functions within the PAC CLI.
 - Create a canvas app within the Power Apps Maker portal.
@@ -28,10 +28,32 @@ This lab will take approximately 30 minutes.
 
 ## Exercise 1: Connect to Dataverse from the PAC CLI to execute Power Fx
 
+1. If Visual Studio Code is not open from Lab 0, open it now.
+2. Open a new terminal window by selecting **Terminal** from the top menu, and then **New Terminal**:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E1_1.png)
+
+3. In the terminal window, type the following command and then press **Enter**:
+
+    ```
+    pac power-fx repl
+    ```
+4. The Power Fx REPL will start. Once connected, you will see a prompt that resembles the below. This indicates that the REPL is ready to receive new commands:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E1_2.png)
+
 ## Exercise 2: Execute basic calculations using Power Fx
 
 ## Exercise 3: Execute basic functions using Power Fx
 
 ## Exercise 4: Create a canvas app
+
+1. Navigate to the [Power Apps Maker Portal](https://make.powerapps.com) and, if not already selected, navigate to the developer environment you created in Lab 0:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E4_1.png)
+
+2. Click on **Apps** from the left-hand navigation menu, and then click on **+ New app**. In the sub-menu, select **Start with a page design**:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E4_2.png)
 
 ## Exercise 5: Execute basic Power Fx functions in a canvas app

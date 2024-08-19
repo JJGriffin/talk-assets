@@ -1,4 +1,4 @@
-# Lab 3 - Using Power Fx in Canvas Power Apps
+# Lab 2 - Using Power Fx in Canvas Power Apps
 
 In this lab, you will create a basic canvas app that connects to Microsoft Dataverse, to allow users to view, edit and create Contact records. You will then extend the app to include a simple Power Fx formula to calculate the age of each Contact record and to display weather information relating to the Contact's location, via a Power Automate cloud flow.
 
