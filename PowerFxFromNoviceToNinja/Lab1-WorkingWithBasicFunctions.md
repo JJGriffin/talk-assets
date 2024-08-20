@@ -44,6 +44,63 @@ This lab will take approximately 30 minutes.
 
 ## Exercise 2: Execute basic calculations using Power Fx
 
+1. In the Power Fx REPL, type the following command and then press **Enter**:
+
+    ```
+    73 + 156
+    ```
+2. The Power Fx REPL will return the result of the calculation, which should equal `229`:
+    
+    ![](Images/Lab1-WorkingWithBasicFunctions/E2_1.png)
+
+3. In the Power Fx REPL, type the following command and then press **Enter**:
+
+    ```
+    156 - 123
+    ```
+4. The Power Fx REPL will return the result of the calculation, which should equal `33`:
+    
+    ![](Images/Lab1-WorkingWithBasicFunctions/E2_2.png)
+
+5. In the Power Fx REPL, type the following command and then press **Enter**:
+
+    ```
+    (325 + 123) / (12 - 3) * 2
+    ```
+
+6. The Power Fx REPL will return the result of the calculation, which should equal `99.55555555555555555555555556`. Notice that Power Fx is able to handle the more complex calculation and return the correct result:
+    
+    ![](Images/Lab1-WorkingWithBasicFunctions/E2_3.png)
+
+7. In the Power Fx REPL, type the following command and then press **Enter**:
+
+    ```
+    123 / 0
+    ```
+8. The Power Fx REPL will return an error message, indicating that division by zero is not allowed:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E2_4.png)
+
+9. Rewrite the formula in step 7 by using the **IfError()** function to return a default value of zero if an error occurs and then press **Enter**:
+
+    ```
+    IfError(123 / 0, 0)
+    ```
+10. This time, the Power Fx REPL will return the value of zero, instead of an error:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E2_5.png)
+
+> [!IMPORTANT]
+> Division by zero is a common scenario that can cause errors, not just in Power Fx, but in other progamming languages as well. It's always a good idea to handle these scenarios in your any formulas where divisions take place, to prevent any unexpected errors from occurring.
+
+7. Using the previous examples as a guide, experiment with other basic calculations in the Power Fx REPL. For example, attempt to calculate the following values:
+
+ - Sixty five (65) multiplied by twenty three (23).
+ - One hundred and twenty three (123) divided by three (3).
+ - Combine the previous two calculations into a single formula, that is then divided together.
+
+8. Leave the Power Fx REPL open, as you will use it again in the next exercise.
+
 ## Exercise 3: Execute basic functions using Power Fx
 
 ## Exercise 4: Create a canvas app
