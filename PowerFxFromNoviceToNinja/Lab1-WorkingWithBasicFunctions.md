@@ -108,7 +108,7 @@ This lab will take approximately 30 minutes.
     ```
     Set(varString, "Sample string value."); Set(varNumber, 456); Set(varDate, Date(2024, 10, 15)); Set(varNow, Now())
     ```
-    
+
     ![](Images/Lab1-WorkingWithBasicFunctions/E3_1.png)
 
 2. In the Power Fx REPL, type the following command and then press **Enter**:
@@ -227,7 +227,7 @@ This lab will take approximately 30 minutes.
 ## Exercise 4: Create a canvas app
 
 > [!IMPORTANT]
-> When creating a canvas app for the first time, it is generally preferred to [create a solution](https://learn.microsoft.com/en-us/power-platform/alm/solution-concepts-alm) first, alongside a corresponding [solution publisher](https://learn.microsoft.com/en-us/power-platform/alm/solution-concepts-alm#solution-publisher). This will help to keep your apps organized and make it easier to manage them in the future. For the purposes of this lab, we will skip these steps.
+> When creating a canvas app, it is generally preferred to [create a solution](https://learn.microsoft.com/en-us/power-platform/alm/solution-concepts-alm) first, alongside a corresponding [solution publisher](https://learn.microsoft.com/en-us/power-platform/alm/solution-concepts-alm#solution-publisher), and to create the app from there. This will help to keep your apps organized and make it easier to deploy them out. For the purposes of this lab, we will skip these steps.
 
 1. Navigate to the [Power Apps Maker Portal](https://make.powerapps.com) and, if not already selected, navigate to the developer environment you created in Lab 0:
    
@@ -236,5 +236,48 @@ This lab will take approximately 30 minutes.
 2. Click on **Apps** from the left-hand navigation menu, and then click on **+ New app**. In the sub-menu, select **Start with a page design**:
    
     ![](Images/Lab1-WorkingWithBasicFunctions/E4_2.png)
+
+3. On the **Start with a page design** screen, select **Blank canvas**:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E4_3.png)
+
+4. After a few moments, the Power Apps studio will open. If you see a **Welcome to Power Apps Studio** window, click on **Skip** to proceed to designer view:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E4_4.png)
+
+5. In the Power Apps studio, click on the **Insert** tab from the top menu, and then select **Vertical gallery**:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E4_5.png)
+
+6. A new gallery control will be added to the app screen. In the formula bar, verify that the **Items** property is selected and modify the formula as follows:
+
+    ```
+    ForAll(
+        Sequence(20),
+        {
+            ID: Text(Value),
+            Name: "Name " & Text(Value),
+            EmailAddress: "email" & Text(Value) & "@example.com",
+            DietaryPreferences: "Preference " & Text(Value),
+            Budget: 25 * Value
+        }
+    )
+    ```
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E4_6.png)
+
+7. The gallery will now be populated with twenty sample records:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E4_7.png)
+
+8. On the top right of the designer view, click on the **Save** icon:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E4_8.png)
+
+9. In the **Save as** dialog, enter a name value of `Lab 1`, followed by your initials, and then click on **Save**:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E4_9.png)
+
+10. Leave the canvas app open, as you will continue working with it in the next exercise.
 
 ## Exercise 5: Execute basic Power Fx functions in a canvas app
