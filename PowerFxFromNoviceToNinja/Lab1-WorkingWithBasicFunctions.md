@@ -428,4 +428,8 @@ This lab will take approximately 30 minutes.
 
     ![](Images/Lab1-WorkingWithBasicFunctions/E5_16.png)
 
-25. We will return to this app in the next lab exercise. Leave the canvas designer open for now, as we will return to it later on.
+25. Click on the **Back** button on the top right of the screen to return to the Power Apps maker portal, and press **Leave** to confirm; we will not be returning to this app in the next lab:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_17.png)
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_18.png)
