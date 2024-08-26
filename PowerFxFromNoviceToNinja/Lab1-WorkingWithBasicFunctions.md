@@ -281,3 +281,151 @@ This lab will take approximately 30 minutes.
 10. Leave the canvas app open, as you will continue working with it in the next exercise.
 
 ## Exercise 5: Execute basic Power Fx functions in a canvas app
+
+1. You should still be in the Power Apps studio for the canvas app created in Exercise 4. If not, navigate back to this now.
+2. In the designer window, with **Screen 1** selected, click on the **Insert** tab from the top menu, and then select **Label**:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_1.png)
+
+3. A new label control will be added to the screen. Drag and drop it onto the right-hand side of the screen:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_2.png)
+
+4. With the label control selected, navigate to the control property dropdown, select **Color** and configure the formula as indicated below:
+
+    ```
+     Color.Red
+    ```
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_3.png)
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_4.png)
+
+5. Repeat the same steps in 4, but this time, select and configure the following properties as indicated in the table below. Once configured correctly, the app screen should resmble the screenshot below:
+
+    | Property | Formula |
+    | --- | --- |
+    | **Align** | `Align.Center` |
+    | **FontWeight** | `FontWeight.Bold` |
+    | **Height** | `50` |
+    | **Size** | `36` |
+    | **Width** | `550` |
+    | **X** | `750` |
+    | **Y** | `325 |
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_5.png)
+
+6. Modify the **Text** property of the label to attempt to return a count of all rows from the gallery:
+
+    ```
+    CountRows(Gallery1)
+    ```
+
+7. Notice that formula returns an error, as the **CountRows()** function supports a table argument only:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_6.png)
+
+8. Let's fix the error by creating a collection to store the gallery data instead. First, right click on the **App** option in the Tree view and ensure the **OnStart** property is selected:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_7.png)
+
+9. Enter the following formula in the bar, which will initialise a collection with the same data as the gallery:
+
+    ```
+    ClearCollect(
+        galleryData,
+        ForAll(
+            Sequence(20),
+            {
+                ID: Text(Value),
+                Name: "Name " & Text(Value),
+                EmailAddress: "email" & Text(Value) & "@example.com",
+                DietaryPreferences: "Preference " & Text(Value),
+                Budget: 25 * Value
+            }
+        )
+    )
+    ```
+> [!IMPORTANT]
+> **ClearCollect** provides a quick and easy way to create a collection and, if one with the same name exists already, delete it and recreate it some scratch. It's therefore recommended to use this as opposed to **Collect** where possible.
+
+10. Select the **Gallery1** control, navigate to the **Items** property and update the property to reference the new collection:
+
+    ```
+    galleryData
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_8.png)
+
+11. The gallery will display no records. This is because the **OnStart** event has not been executed. Right click the **App** option in the Tree view and select **Run OnStart**:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_9.png)
+
+12. The gallery will now display the same records as before:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_10.png)
+
+> [!IMPORTANT]
+> Usage of the **App.OnStart** is generally discouraged, as it can lead to performance issues with your app. Microsoft have provided an alternative event, the **App.StartScreen** property, that is recommended to be used instead. For the purposes of this simple exercise, usage of **App.OnStart** is acceptable. For further details regarding the **App.StartScreen** property, please refer to the [following blog post](https://www.microsoft.com/en-us/power-platform/blog/power-apps/app-startscreen-a-new-declarative-alternative-to-navigate-in-app-onstart/).
+
+13. Now we can correct the issue with the label control. Modify the **Text** property of the label to return the count of all rows from the collection:
+
+    ```
+    CountRows(galleryData)
+    ```
+14. The label will now display the correct count of records, `20`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_11.png)
+
+> [!IMPORTANT]
+> It is generally recommended to always work with collections, so that you have the fullest range of support when using different Power Fx functions. In addition, collections can afford several performance benefits for your applications.
+
+15. Modify the **Text** property of the label to return the sum of all the Budget values from the collection:
+
+    ```
+    Sum(galleryData, Budget)
+    ```
+16. The label will now display the correct sum of all Budget values, `5250`; however, it is not formatted as a proper currency value:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_12.png)
+    
+17. Modify the **Text** property of the label to return the sum of all the Budget values from the collection, formatted as a currency value:
+
+    ```
+    Text(Sum(galleryData, Budget), "$#,###.00")
+    ```
+
+18. The label will now display the correct sum of all Budget values, `5,250.00`, formatted as a currency value. The preceding currency symbol will always be formatted based on the locale of the user; in the example screenshot below, `en-gb` locale is configured, meaning that the GBP symbol is used:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_13.png)
+
+19. The **Text** function supports overrides for the user locale. Modify the formula again, but this time, specify the locale code for Germany, `de-DE`:
+
+    ```
+    Text(Sum(galleryData, Budget), "$#,###.00", "de-DE")
+    ```
+20. The label will now display the correct sum of all Budget values, `5.250,00`, formatted with the correct EUR currency symbole for Germany:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_14.png)
+
+21. Modify the **Text** property of the label to return a conditional count of all rows in the **galleryData** control, where the **ID** value is greater than `5`:
+
+    ```
+    CountIf(galleryData, Value(ID) > 5)
+    ```
+22. The label will now display the correct count of records, `15`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_15.png)
+
+23. Experiment further with the label control, and see if you can get the label to display the following information. Use the [Power Fx formula reference for canvas apps documentation to help you if you get stuck](https://learn.microsoft.com/en-us/power-platform/power-fx/formula-reference-canvas-apps):
+
+ - The average value of the **Budget** column.
+ - The maximum value of the **Budget** column.
+ - The minimum value of the **Budget** column.
+ - The **Budget** value from the first record in the **galleryData** collection.
+ - The **EmailAddress** value from the last record in the **galleryData** collection.
+
+24. Save the app and your changes by clicking on the **Save** icon in the top right of the designer view:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_16.png)
+
+25. We will return to this app in the next lab exercise. Leave the canvas designer open for now, as we will return to it later on.
