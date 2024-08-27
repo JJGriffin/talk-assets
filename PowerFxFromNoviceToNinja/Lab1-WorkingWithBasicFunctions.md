@@ -301,7 +301,7 @@ This lab will take approximately 30 minutes.
 
     ![](Images/Lab1-WorkingWithBasicFunctions/E5_4.png)
 
-5. Repeat the same steps in 4, but this time, select and configure the following properties as indicated in the table below. Once configured correctly, the app screen should resmble the screenshot below:
+5. Repeat the same steps in 4, but this time, select and configure the following properties as indicated in the table below. Once configured correctly, the app screen should resemble the screenshot below:
 
     | Property | Formula |
     | --- | --- |
@@ -311,7 +311,7 @@ This lab will take approximately 30 minutes.
     | **Size** | `36` |
     | **Width** | `550` |
     | **X** | `750` |
-    | **Y** | `325 |
+    | **Y** | `325` |
 
     ![](Images/Lab1-WorkingWithBasicFunctions/E5_5.png)
 
