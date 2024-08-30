@@ -428,4 +428,105 @@ Let's proceed to implement the functionality in the order described above, and t
 
 ## Exercise 4: Add a Power Automate cloud flow to retrieve weather information
 
-## Exercise 5: Review and implement recommendations from the Power Apps app checker
+> [!IMPORTANT]
+> This exercise assumes that you have completed the previous exercises and have the `Lab 2` canvas app open in the Power Apps studio. If you are not there currently, navigate to the app now.
+
+To display weather information for the Contact's location, we will create a Power Automate cloud flow that will retrieve the weather information using [the MSN Weather connector](https://learn.microsoft.com/en-us/connectors/msnweather/). We will then call this flow from the canvas app using the button we added to the app in Exercise 3 to display the weather information.
+
+Note that it would be possible to add the MSN Weather connector directly into the app, and then use this to achieve the same outcome. We will use Power Automate in this instance to demonstrate the integration capabilities between different areas of the Power Platform, and so you can familliarize yourself with the approaches to follow when calling a cloud flow from a canvas app.
+
+1. In the `Lab 2` canvas app, navigate to the **Contact Screen** screen in the tree view.
+2. On the right hand-side of the screen, select the **Power Automate** icon
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_1.png)
+
+3. In the **Power Automate** pane, click on the **Create new flow** button:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_2.png)
+
+4. In the **Create your flow** dialog, click on the **+ Create from blank** button:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_3.png)
+
+5. The flow designer screen will open. Click on the **Power Apps V2** trigger to expand it:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_4.png)
+
+6. Click on the **+ Add an input** button, and then select the **Text** input type:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_5.png)
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_6.png)
+
+7. Rename the new input to **Location**:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_7.png)
+
+8. Click on **+ New step** and then search for the **MSN Weather** connector. Under **Actions**, select the **Get forecast for today** action:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_8.png)
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_9.png)
+
+9. In the **Get forecast for today** action, select the **Location** input and set the value to the **Location** input from the Power Apps trigger:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_10.png)
+
+10. Repeat the same steps in 8, but this time, search for **Power Apps** and select the **Respond to Power Apps or Flow** action:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_11.png)
+
+11. In the **Respond to Power Apps or Flow** action, select **+ Add an Output** and then select **Text**:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_12.png)
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_13.png)
+
+12. In the **Enter title** input, enter `Forecast` and in the **Enter a value to respond** input, set the value to the **Day Summary** output from the **Get forecast for today** action:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_14.png)
+
+13. You have now configured the flow. If setup correctly, it should resemble the screenshot below:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_15.png)
+
+14. Rename the new cloud flow to `GetWeatherForLocation`, by clicking on **Untitled** and renaming it accordingly:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_16.png)
+
+15. Click on the **Save** icon in the top right corner of the screen to save the flow:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_17.png)
+
+16. Close the flow designer by clicking on the **Close** icon in the top right corner of the screen. The flow will then be automatically added to the app and visible in the **Power Automate** pane:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_18.png)
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_19.png)
+
+17. Click on the **Get Weather** button in the **Contact Screen** screen, and with the **OnSelect** property selected in the formula dropdown, adjust the formula value as follows:
+
+    ```
+    Set(varWeatherForecast, GetWeatherForLocation.Run(Concatenate('Contact Gallery'.Selected.'Address 1: Street 1', ",", 'Contact Gallery'.Selected.'Address 1: City', ",", 'Contact Gallery'.Selected.'Address 1: ZIP/Postal Code', ",", 'Contact Gallery'.Selected.'Address 1: Country/Region')).forecast)
+    ```
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_20.png)
+
+18. Select the **Weather Label** control, and with the **Text** property selected in the formula dropdown, adjust the formula value as follows:
+
+    ```
+    varWeatherForecast
+    ```
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_21.png)
+
+19. Save all changes to the canvas app by clicking on the **Save** icon in the top right corner of the screen.
+20. Click on the **Play** icon in the top right corner of the screen to launch the app in preview mode
+21. Click on the **Get Weather** button to trigger the cloud flow. After a few moments, the weather information for the Contact's location should display in the **Weather Label** control:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_22.png)
+
+22. You can (optionally) experiment further by going back to the gallery screen, selecting different Contacts and then generating the unique forecast for each Contact's location.
+23. Leave the app open, as you will continue working with it in the next exercise.
+
+## Exercise 5: Review and implement recommendations from the Power Apps App Checker
