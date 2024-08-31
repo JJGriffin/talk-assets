@@ -530,3 +530,113 @@ Note that it would be possible to add the MSN Weather connector directly into th
 23. Leave the app open, as you will continue working with it in the next exercise.
 
 ## Exercise 5: Review and implement recommendations from the Power Apps App Checker
+
+> [!IMPORTANT]
+> This exercise assumes that you have completed the previous exercises and have the `Lab 2` canvas app open in the Power Apps studio. If you are not there currently, navigate to the app now.
+
+Power Apps provides an [App Checker tool](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/accessibility-checker) that can help you identify and resolve potential issues in our canvas apps. These issues can range from errors, through to accessibility concerns to performance improvements. Ensuring that you address accesibility issues is important, as it can help to ensure that all users can interact with your app effectively.
+
+In this exercise, you will run the App Checker tool against the `Lab 2` canvas app, review the recommendations and then implement any necessary changes. We will also simulate an issue in the application, to see how the App Checker tool can be used to identify and resolve errors.
+
+1. In the `Lab 2` canvas app, navigate to the **Contact Form** screen in the tree view, select the **Get Weather** button and adjust the **OnSelect** property formula as follows:
+
+    ```
+    Set(varWeatherForecasts, GetWeatherForLocation.Run(Concatenate('Contact Gallery'.Selected.'Error Simulation', ",", 'Contact Gallery'.Selected.'Address 1: City', ",", 'Contact Gallery'.Selected.'Address 1: ZIP/Postal Code', ",", 'Contact Gallery'.Selected.'Address 1: Country/Region')))
+    ```
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_1.png)
+
+2. Notice that Intellisense will highlight the formula as having an error, and the App Checker icon will also display a red dot in the top right corner of the screen. The individual control(s) will also display a red cross icon to indicate an error:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_2.png)
+
+> [!IMPORTANT]
+> The App Checker tool will always display a red dot if there are any formula errors anywhere in your application. However, just because a red dot isn't present, doesn't mean that there are no issues in your app. It's always a good idea to run the App Checker tool after creating the first version of your app, and then periodically throughout the development process.
+
+3. Click on the **App Checker** icon in the top right corner of the screen. The App Checker pane will open on the right-hand side of the screen:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_3.png)
+
+4. Expand the **Formulas** heading. Notice that the list of errors are grouped by screen, and then by the individual control property that contains the error:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_4.png)
+
+5. Click the arrow next to each of the errors to inspect the details further. Notice that you are provided with an outline description of the issue, a precise location of where the error is occurring, suggestions on how to fix and a link to any relevant documentation. Click on the back arrow next to the **Details** to return back to the previous pane:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_5.png)
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_6.png)
+
+6. Once you have finished inspecting all errors, return back to the App Checker pane by clicking the back arrow next to the **Formulas** heading and then expand the **Performance** heading:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_7.png)
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_8.png)
+
+7. The **Performance** pane should display a single warning relating to an unusued variable. Click on the arrow next to the warning to inspect the details further. When you are finished, click on the back arrow next to the **Details** to return back to the previous pane, and then the back arrow next to the **Performance** heading to return back to the main App Checker pane.
+
+> [!IMPORTANT]
+> Variables that are referenced or initialised, but not used anywhere in the app, can lead to performance issues and confusion to other developers working on the app. You should regularly review and remove any unnecessary variables from your app.
+
+![](Images/Lab2-UsingPowerFxInCanvasApps/E5_9.png)
+
+8. Fix the issue with the **Get Weather** button by reverting the **OnSelect** property formula back to it's original value:
+
+    ```
+    Set(varWeatherForecast, GetWeatherForLocation.Run(Concatenate('Contact Gallery'.Selected.'Address 1: Street 1', ",", 'Contact Gallery'.Selected.'Address 1: City', ",", 'Contact Gallery'.Selected.'Address 1: ZIP/Postal Code', ",", 'Contact Gallery'.Selected.'Address 1: Country/Region')).forecast)
+    ```
+
+9. Notice that the red icon in the top right corner of the screen will disappear, and the individual control(s) will no longer display a red cross icon:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_10.png)
+
+10. In the **App Checker** pane, expand the **Accessibility** heading:
+    
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_11.png)
+
+11. Notice that there are 10 accessibility errors displayed - seven relating to missing accessibility labels and three relating to missing tab stops:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_12.png)
+
+> [!IMPORTANT]
+> Accessibility labels are relied upon for screen readers, to help clearly explain the purpose for a control to users who may have visual impairments. Tab stops are used to help users navigate through the app using the keyboard, and are important for users who may have mobility impairments. Tab order can also be useful for users who prefer to use keyboard shortcuts to navigate through their apps.
+
+12. Click on the arrow next to the accessible label error for the **Contact Gallery** to inspect the details further. Notice that you are provided with an outline description of the issue, a precise location of where the error is occurring, suggestions on how to fix and a link to any relevant documentation. In addition, the relevant property is selected in the tree view and formula bar:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_13.png)
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_14.png)
+
+13. Correct the issue with the accessible label by providing a suitable description in the formula bar. For example, `"Gallery for displaying a list of Contacts from Dataverse"`:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_15.png)
+
+14. Repeat the same steps in 12 and 13 for the remaining accessibility label errors. For each label, type in an appropriate description value that accurately describe what the control is doing. Once all errors are resolved and the **Recheck** option is selected on the **Accessibility** pane, all errors should be resolved:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_16.png)
+
+15. In the **Accessibility** pane, select the missing tab stop error for the **Contact Gallery** control. Notice that the **TabIndex** property of the control is selected in the formula bar, and that it's value is set to `-1`:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_17.png)
+
+16. Adjust the **TabIndex** property value to `1` and then click on **Recheck**:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_18.png)
+
+17. Notice that although the error for the **Control Gallery** missing tab stop has disappeared, a new tip is displayed regarding the order of screen items:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_19.png)
+
+> [!IMPORTANT]
+> The precise order you indicate via the **TabIndex** property will have an important impact on how users interact with the app, and their general experience. In a real-world scenario, you would need to pay special attention to the order you would like to set for each control, and ensure that it makes sense for the user. For the purposes of this exercise, we will ignore the tip.
+
+18. Repeat steps 15 and 16 for the remaining missing tab stop errors, providing an appropriate value for each control (e.g. `1` or `2`). Once all errors are resolved and the **Recheck** option is selected on the **Accessibility** pane, all errors should be resolved, with only the screen order tips remaining:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_20.png)
+
+19. Save all changes to the canvas app by clicking on the **Save** icon in the top right corner of the screen.
+20. Click on the **Publish** icon in the top right corner of the screen to publish the app. In the **Publish** dialog, click on the **Publish this version** button:
+
+    ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_21.png)
+
+21. The app will automatically publish itself in the background. You may now close the app by clicking on the **Back** icon in the top left of the screen.
