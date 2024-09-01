@@ -15,7 +15,7 @@ You also need to diagnose some issues with the initial version of the app that w
 
 In this lab, you will do the following:
 
-- Extend the existing canvas app to include a new screen that allows for the creation of Account and Contact records in Dataverse.
+- Extend the existing canvas app to allow for the creation of Contact records in Dataverse, using the `Patch()` function.
 - Add a new field to the Contact table in Dataverse to support the filtering of external Contacts.
 - Implement a Power Fx formula to filter the existing Contact screen to only display Contacts that are external.
 - Use the Monitor to diagnose and resolve performance issues with the app.
@@ -27,7 +27,7 @@ This lab will take approximately 30 minutes to complete.
 
 ## Exercise 1: Extend the Canvas App
 
-## Exercise 2: Add a New Field to the Contact Table
+## Exercise 2: Customize the Contact Table
 
 ## Exercise 3: Implement a Power Fx Formula to Filter Contacts
 
