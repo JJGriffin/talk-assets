@@ -235,8 +235,127 @@ This lab will take approximately 30 minutes to complete.
 
     ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_21.png)
 
-19. Leave the solution view and maker portal open, as we will need it in the next exercise.
+19. Click on **All** to return an overview of the solution:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_22.png)
+
+19. Leave the solution view and maker portal open, as we will continue from here in the next exercise.
 
 ## Exercise 3: Add External Contact and Filter to the Canvas App
 
-## Exercise 4: Use the Monitor to Diagnose Performance Issues
+> [!IMPORTANT]
+> Ensure that all steps in Exercise 2 have been completed before proceeding.
+
+1. You should still be in the solution view for the **Wingtip Toys PP Solution** created in the previous exercise; if not, navigate there now.
+2. Click on the `Lab 2` canvas app to open it in the designer:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_1.png)
+
+3. In the **Tree view**, expand the **Contact Form** screen and then select the **ContactForm** control:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_2.png)
+
+4. In the properties pane, click on **8 selected** next to the **Fields** label:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_3.png)
+
+5. In the **Fields** pane, click on **Add field** and then select the **External Contact?** field from the list of fields. You can use the search box to more easily locate it. Once selected, click on **Add** to add the field to the form:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_4.png)
+
+6. Click on the cross icon to close the **Fields** pane. The **External Contact?** field should now be visible in the form, as a dropdown control:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_5.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_6.png)
+
+7. Click on the **Contact Screen** screen in the **Tree view** and then play the application:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_7.png)
+
+8. Navigate into the first Contact record and then populate the **External Contact?** field with the value `External`. Save the record and then navigate back to the Contact screen:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_8.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_9.png)
+
+9. Repeat step 8 for all remaining Contacts in the gallery. For each Contact, alternate between the `Internal` and `External` values for the **External Contact?** field, ensuring an even split between the two values:
+10. Exit the app player by clicking on the **Close** icon in the top right corner of the screen.
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_10.png)
+
+11. Select the **Contact Gallery** gallery in the **Tree view**:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_11.png)
+
+12. Adjust the properties of the gallery as indicated in the table below. The gallery should resemble the screenshot below if configured correctly:
+
+    | Property | Formula |
+    | --- | --- |
+    | **Width** | `1150` |
+    | **X** | `216` |
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_12.png)
+
+13. Click on the **+ Insert** button in the top menu, and then select **Radio**. You may need to expand the **Input** heading to locate the control:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_13.png)
+
+14. Rename the **Radio** control to **Contact Filter** by double clicking it in the **Tree view** menu:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_14.png)
+
+13. Adjust the properties of the **Contact Filter** control as indicated in the table below. The screen should resemble the screenshot below if configured correctly:
+
+    | Property | Formula |
+    | --- | --- |
+    | **Height** | `154` |
+    | **Items** | `["All", "Internal", "External"]` |
+    | **Width** | `160` |
+    | **X** | `40` |
+    | **Y** | `185` |
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_15.png)
+
+14. Select the **Contact Gallery** control and adjust the **Items** property to filter the gallery based on the selected value in the **Contact Filter** control. Use the following formula:
+
+    ```
+    Switch('Contact Filter'.SelectedText.Value, 
+        "All", Contacts,
+        "Internal", Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal),
+        "External", Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External)
+    )
+    ```
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_16.png)
+
+15. Press the **Play** icon in the top right corner of the screen to test the application. Select the different options from the **Contact Filter** control and confirm that the list of Contacts in the gallery updates accordingly. Close the player when you are finished testing:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_17.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_18.png)
+
+16. Currently, the gallery is returning the data in an inconsistent order. Adjust the formula for the **Items** property on the **Contact Gallery** to include the `Sort()` function. Use the following formula:
+
+    ```
+    Switch('Contact Filter'.SelectedText.Value, 
+        "All", Sort(Contacts, 'Full Name', SortOrder.Ascending),
+        "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
+        "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
+    )
+    ```
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_19.png)
+
+17. Press the **Play** icon in the top right corner of the screen to test the application. Select the different options from the **Contact Filter** control and confirm that the list of Contacts is now sorted in ascending order. Close the player when you are finished testing:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_20.png)
+
+18. Click on the **Save** icon to save all changes to the app.
+19. Leave the app designer open, as we will return to the app in the next exercise.
+
+## Exercise 4: Diagnosing and Resolving Performance Issues
+
+As your app is deployed and used over time, peformance issues may arise. For these scenarios, the [Monitor tool](https://learn.microsoft.com/en-us/power-apps/maker/monitor-overview) provides us with the capability to perform a "deep view" into our app, thereby allowing us to understand all the key activities that occur. From there, bottlenecks can be identified and resolved.
+
+For this exercise, we are going to first import some additional Contact data into our Dataverse environment. This will allow us to simulate a scenario where [delegation and query limits](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/delegation-overview) will occur. We will see how this behaviour affects our app at runtime. Next, we will use the Monitor tool to understand how the current structure of the app may be causing performance issues, and what we can do to resolve this.
