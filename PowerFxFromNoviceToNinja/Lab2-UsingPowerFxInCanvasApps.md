@@ -640,3 +640,5 @@ In this exercise, you will run the App Checker tool against the `Lab 2` canvas a
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E5_21.png)
 
 21. The app will automatically publish itself in the background. You may now close the app by clicking on the **Back** icon in the top left of the screen.
+
+**Congratulations, you've finished Lab 2** 🥳

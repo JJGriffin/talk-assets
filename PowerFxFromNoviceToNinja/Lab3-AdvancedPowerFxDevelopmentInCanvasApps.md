@@ -352,10 +352,204 @@ This lab will take approximately 30 minutes to complete.
     ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E3_20.png)
 
 18. Click on the **Save** icon to save all changes to the app.
-19. Leave the app designer open, as we will return to the app in the next exercise.
+19. Click on the **Back** button to exit the app designer.
 
 ## Exercise 4: Diagnosing and Resolving Performance Issues
 
 As your app is deployed and used over time, peformance issues may arise. For these scenarios, the [Monitor tool](https://learn.microsoft.com/en-us/power-apps/maker/monitor-overview) provides us with the capability to perform a "deep view" into our app, thereby allowing us to understand all the key activities that occur. From there, bottlenecks can be identified and resolved.
 
-For this exercise, we are going to first import some additional Contact data into our Dataverse environment. This will allow us to simulate a scenario where [delegation and query limits](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/delegation-overview) will occur. We will see how this behaviour affects our app at runtime. Next, we will use the Monitor tool to understand how the current structure of the app may be causing performance issues, and what we can do to resolve this.
+For this exercise, we are going to first import some additional Contact data into our Dataverse environment. This will allow us to simulate a scenario where [delegation and query limits](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/delegation-overview) will occur. We will see how this behaviour affects our app at runtime. Next, we will use the Monitor tool to understand how the current structure of the app may be causing performance issues, what we can do to resolve this and the potential side-effects of our actions.
+
+1. Download the [ContactData.csv](/PowerFxFromNoviceToNinja/Resources/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/Contacts.csv) file to your local machine.
+2. Open a new browser tab and navigate to the [Power Apps Maker Portal](https://make.powerapps.com).
+3. In the **Power Apps Maker Portal**, click on **Tables** from the left-hand navigation menu and then click on **Import** -> **Import Data**:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_1.png)
+
+4. In the **Choose data source** page, drag and drop or browse and select the **ContactData.csv** file you downloaded in step 1. Once selected, click on **Next**:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_2.png)
+
+5. On the **Connect to data source** page, click on **Sign in**. If prompted, sign in with your work or school account. Once you've signed in, click on **Next**:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_3.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_4.png)
+
+6. On the **Preview file data** screen, review the data that will be imported and then click on **Next**:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_5.png)
+
+7. On the Power Query editor page, click on the icon next to **birthdate** and change the data type to **Date**. If prompted with a **Change column type** dialog, click on **Add new step**. Once done, click on **Next**:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_6.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_7.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_8.png)
+
+8. On the **Map tables** page, populate the details as follows and then select **Next**:
+    - **Load settings**: Select **Load to existing table**
+    - **Destination table**: Select **Contact**
+    - **Column mapping**: Map the **Source column**'s and **Destination column**'s as indicated below:
+        - birthdate -> BirthDate
+        - emailaddress1 -> EMailAddress1
+        - firstname -> FirstName
+        - lastname -> LastName
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_9.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_10.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_11.png)
+
+9. On the **Refresh settings** page, ensure the **Refresh manually** option is selected and then click on **Publish**:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_12.png)
+
+10. You will be taken back to the Maker portal. Click on **More** and then select **Dataflows**:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_13.png)
+
+11. On the **Dataflows** page, you will see a single dataflow, which will display **In progress** under the **Next refresh** heading. Wait a few minutes, refresh the page and confirm that the refresh has completed successfully:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_14.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_15.png)
+
+12. Navigate to the **Wingtip Toys PP Solution** solution and then click on the `Lab 2` canvas app to open it in the designer:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_16.png)
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_17.png)
+
+13. With the **Contact Screen** selected, click on the **Play** icon in the top right corner of the screen to test the application. With the **All** option selected, you should see the new Contact records in the gallery:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_18.png)
+
+Now that we have imported additional data into our Dataverse environment, we can simulate a scenario involving delegation. By default, the `Filter()` and `Sort()` function support delegation when connecting to Dataverse, which means that all records will be returned from the data source. This is because the connector can apply the appropriate filtering and sorting rules at the API level.
+
+However, there are scenarios where delegation is not supported, even with the Dataverse connector. In these scenarios, by default, only the first 500 records will be returned from the data source. Let's adjust the app to reduce the number of records returned from the data source when queries can't be delegated, and then adjust the gallery formula so that delegation is no longer supported.
+
+1. In the app designer view, click on the **Settings** icon in the bottom left of the screen:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_19.png)
+
+2. On the **General** tab, scroll down, change the **Data row limit** value to `5` and click on **Close**:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_20.png)
+
+3. Back on the **Contact Screen**, observe that the gallery is still displaying all records from the Contact table. Click on the **Play** icon in the top right corner of the screen to test the application. With the **Internal** option selected, you should see at least 7 records:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_21.png)
+
+4. Adjust the formula of the **Items** property on the **Contact Gallery** control to introduce a scenario where delegation will no longer be supported:
+    
+    ```
+    Switch('Contact Filter'.SelectedText.Value, 
+        "All", Sort(Contacts, 'Full Name', SortOrder.Ascending),
+        "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
+        "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
+    )
+    ```
+    
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_22.png)
+
+5. Notice now that the gallery control has a warning icon displayed and when you press **Play** to test the application, only 2 internal Contact records are now returned. Because we adjusted the delegation settings of the application, we can more clearly see how delegation issues can impact our application:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_23.png)
+
+> [!IMPORTANT]
+> For other Dataverse data types, `IsBlank()` is usually delegable. Choice columns are the only type that are not supported. For more information on what is and isn't supported for delegation with the Dataverse connector, [consult the Microsoft Learn site](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/connections/connection-common-data-service#power-apps-delegable-functions-and-operations-for-dataverse).
+
+6. Fix the delegation issue by reverting the formula in the gallery **Items** property:
+
+    ```
+    Switch('Contact Filter'.SelectedText.Value, 
+        "All", Sort(Contacts, 'Full Name', SortOrder.Ascending),
+        "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
+        "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
+    )
+    ```
+7. Notice that the delegation warnings disappear and the expected number of Contact records are returned again.
+
+This part of the exercise is designed to make you aware of the practical implications of delegation and how it can impact your app, especially in relation to what data is returned for an end user. The Dataverse connector, along with the [SQL Server](https://learn.microsoft.com/en-us/connectors/sql/#power-apps-functions-and-operations-delegable-to-sql-server), [SharePoint](https://learn.microsoft.com/en-us/connectors/sharepointonline/#power-apps-delegable-functions-and-operations-for-sharepoint) and [Salesforce](https://learn.microsoft.com/en-us/connectors/salesforce/#power-apps-delegable-functions-and-operations-for-salesforce) connectors support the widest range of delegation options, but other data sources may vary. You should always ensure you check the documentation for any connector you use in your app, to understand what is and isn't supported with delegation.
+
+Let's move onto the final part of the exercise, where we will use the Monitor tool to inspect our apps performance and implement some changes to improve it:
+
+1. In the `Lab 2` app designer, click on **Advanced tools** and then the **Open monitor** label to open the Monitor:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_25.png)
+
+2. The Monitor tool will open in a new browser tab. You should see a label that reads **Studio session**. This indicates that any action taken within the app designer will be logged to this monitor session:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_26.png)
+
+3. Navigate back to the app designer tab and click on the **Play** icon to test the application. Spend a few moments on the **Contact Screen** doing the following:
+    - With the **All** filter selected, scrolling down the gallery page until the contact names start to begin with the letter **H**.
+    - Applying the **Internal** and **External** filters
+    - Selecting a Contact record, updating it's information and then saving the record.
+4. Return to the browser tab with the Monitor tool open. You should see a list of all the actions you performed in the app. In addition, you will see multiple requests to the **Contact** data source:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_27.png)
+
+Because of how we have created the app in the previous lab steps, the app is making multiple requests to the data source to retrieve the same data. This could lead to performance issues over time. We could resolve this by using the `ClearCollect()` function to store the data in a collection, and then reference the collection in the gallery. This will reduce the amount of outbound network calls made into Dataverse and ensure the app is as performant as possible. However, we will also observe a side effect of this change relating to delegation:
+
+5. Return to the app designer tab, exit the **Play** mode and click on the **Contact Screen** screen in the **Tree view**. Change the **OnVisible** property of the screen to the following formula:
+
+    ```
+    ClearCollect(ContactCollection, Contacts)
+    ```
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_28.png)
+
+7. Click on the **Contact Form** screen in the **Tree View** and then the **Contact Screen** again. This should force the **OnVisible** property to run and populate the collection with the Contact data. You can verify this by clicking the **Variables** tab and verifying that the Collection exsits:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_29.png)
+
+6. Adjust the formula as part of the **Items** property in the **Contact Gallery** to use the new collection:
+
+    ```
+    Switch('Contact Filter'.SelectedText.Value, 
+        "All", Sort(ContactCollection, 'Full Name', SortOrder.Ascending),
+        "Internal", Sort(Filter(ContactCollection, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
+        "External", Sort(Filter(ContactCollection, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
+    )
+    ```
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_30.png)
+
+7. Observe that with the new formula and with the **All** filter selected, only five records are displayed:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_31.png)
+
+8. Navigate back to the browser tab with the Monitor tool open and press the **Clear data** button to clear the current session:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_32.png)
+
+9. Return to the app designer tab and click on the **Play** icon to test the application. Spend a few moments repeating the same action steps as described in step 3, with the exception of modifying a Contact record. Once done, return to the Monitor tool tab.
+10. Observe that there are no new requests to the **Contact** data source. This is because the data is now stored in the collection and the app is referencing the collection instead of making multiple requests to the data source:
+
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_33.png)
+
+Although collections can be a powerful way to reduce the amount of network traffic in your applications, issues can arise due to delegation. Because we previously modified the **Data row limit** property to `5`, this will now be the maximum number of records that `ClearCollect()` will return for us. We can work around this by increasing this limit to `1100`, but this is not a fail-safe solution. In addition, this property only supports a maximum value of `2000`:
+
+![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E4_34.png)
+
+The purpose of this final exercise is to make you aware of the practical implications of your design choices. You will need to ask yourself the following questions to determine the best approach for your app:
+
+- What is the maximum potential size of my data source or result set when using `Filter()` or similar? If this is in excess of 2000 records, you may need to consider alternative approaches.
+- Does the data source I'm using support delegation? If not, how can I work around this?
+- What is the expected number of network calls my app will make to my data source and how could this be negatively impacting performance? For example, usage of the `Lookup()` or `ForAll()` function in conjunction with these could introduce significant performance issues.
+
+> [!IMPORTANT]
+> Before finishing up this lab exercise and saving your changes for the final time, make sure you revert back the formula used for the **Items** property in the **Contact Gallery**:
+    
+```
+Switch('Contact Filter'.SelectedText.Value, 
+    "All", Sort(Contacts, 'Full Name', SortOrder.Ascending),
+    "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
+    "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
+)
+```
+
+**Congratulations, you've finished Lab 3** 🥳

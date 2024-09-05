@@ -132,3 +132,5 @@ An authentication profile allows us to connect to one, or several, Dataverse env
     ![](Images/Lab0-ConfigureLabEnvironment/E4_4.png)
 
 7. Leave Visual Studio Code and the terminal window open for the next lab exercise.
+
+**Congratulations, you've finished Lab 0** 🥳

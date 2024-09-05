@@ -29,3 +29,5 @@ This lab will take approximately 45 minutes to complete.
 ## Exercise 4: Implement a Low-Code Plug-In
 
 ## Exercise 5: Embed the Canvas App into the Model-Driven App
+
+**Congratulations, you've finished Lab 4** 🥳

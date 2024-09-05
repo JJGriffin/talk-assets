@@ -433,3 +433,5 @@ This lab will take approximately 30 minutes.
     ![](Images/Lab1-WorkingWithBasicFunctions/E5_17.png)
 
     ![](Images/Lab1-WorkingWithBasicFunctions/E5_18.png)
+
+**Congratulations, you've finished Lab 1** 🥳
