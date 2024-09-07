@@ -10,7 +10,7 @@ Having successfully created a basic canvas app that allows sales people to view 
 - Write information back to the Contact **Description** field when a Contact is updated. This field should be read-only and not editable by the user.
 - Filter the existing Contact screen to only display Contacts that are external. A new field needs to be added to the Contact table, to support this requirement.
 
-You also need to diagnose some issues with the initial version of the app that was launched to the sellers. Sellers have reported that the app is slow to load and that some of the data is not displaying correctly. You plan to use the Monitor to diagnose these issues further.
+Wingtip Toys have also asked you to explore changing the existing data source of the canvas apps to a different 3rd party system. Based on your research, you have determined that this may lead to unintended side effects as a result of delegation and query limits. You therefore plan to experiment further so you can better understand the behaviours involved with delegation and the impact of using [Collections](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/working-with-data-sources#collections). Your plan is to use the Monitor tool to assist you in this diagnosis.
 
 ## Instructions
 
