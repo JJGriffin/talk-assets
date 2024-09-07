@@ -114,7 +114,6 @@ This lab will take approximately 45 minutes to complete.
 
     ![](Images/Lab4-ExtendingDataverseWithPowerFx/E1_17.png)
 
-    - Currently, the form does not display the Birthday for the Contact record in question. In Exercise 3, we will add this on along with our custom formula column. Forms can customized easily and straightforwardly in Microsoft Dataverse. Keep in mind though, that Dataverse forms and canvas app forms are **NOT** the same.
     - On the form, we can see the **Phone** field has already been added. This field will be targeted as part of the low-code plug-in we will implement in Exercise 4.
 
     ![](Images/Lab4-ExtendingDataverseWithPowerFx/E1_18.png)
@@ -243,6 +242,81 @@ This lab will take approximately 45 minutes to complete.
 
 > [!IMPORTANT]
 > This exercise assumes that you have completed the previous exercise. If you haven't, complete these steps first before proceeding.
+
+1. Navigate to the [Power Apps Maker Portal](https://make.powerapps.com) and, if not already selected, select the developer environment you created in Lab 0:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_1.png)
+
+2. Click on **Solutions** in the left-hand navigation pane and then click on the **Wingtip Toys PP Solution** solution you created in Lab 3:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_2.png)
+
+3. On the list of components, click on **Contact**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_3.png)
+
+4. On the **Contact** table details, click on **+ New** and then select **Column**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_4.png)
+
+5. On the **New column** form, populate the details as follows and then click on **Save**:
+
+    - **Display name**: `Age`
+    - **Description**: `Formula column to calculate the age of the Contact based on their birthday`
+    - **Data type**: Formula
+    - **Formula**: `DateDiff(Birthday, UTCToday(), TimeUnit.Years)`
+    - **Schema name**: `wtt_Age`
+    - **Formula data type**: Whole number
+    - **Format**: None
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_5.png)
+
+6. We now need to add this new column to the Contact form. Expand the **Contact** option in the **Objects** explorer and select **Forms**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_6.png)
+
+7. Click on **Add existing form**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_7.png)
+
+8. Tick the option next to the **Contact** form and then click on **Add**. The form will be added into your solution. Click on it to open the form designer:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_9.png)
+
+9. In the form designer, click on the **Details** tab:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_10.png)
+
+10. Locate the newly created **Age** column in the **Table columns** list. Once located, drag and drop the column so it's positioned underneath the **Birthday** column:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_11.png)
+
+11. The form designer should resemble the below if done correctly:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_12.png)
+
+12. Save and publish your changes by clicking the **Save and publish** icon in the top right-hand corner of the screen. Once this is complete, click on the **Back** button to return to the solution view:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_13.png)
+
+13. It's now time to test our changes. In the solution view, click on **Apps**, select the **Account Management** app and then click on the **Play** icon to open the app in a new tab:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_14.png)
+
+14. In the **Account Management** app, click on **Contacts** and then select any Contact from the **My Active Contacts** view:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_15.png)
+
+15. Click on the **Details** tab and verify that the **Age** column is displaying and that the age of the Contact is being calculated correctly based on their birthday:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E3_16.png)
+
+16. Experiment with updating the **Birthday** of the Contact and saving the record. Observe how the **Age** column updates automatically after each save operation. When you are finished, close the browser tab to return to the solution window.
+
+> [!IMPORTANT]
+> Formula columns always calculate their value when a record is retrieved in the system (i.e. whenever the **Retrieve** or **RetrieveMultiple** messages are called). This means that the value of the column is not stored in the database, but is calculated on the fly when the record is retrieved. This is useful for scenarios where you need to calculate a value based on other fields in the record, but it's important to be aware of the performance implications of using formula columns, especially in larger Dataverse environments.
+
+17. Leave the solution view open as we will be starting from here in the next exercise.
 
 ## Exercise 4: Implement a Low-Code Plug-In
 
