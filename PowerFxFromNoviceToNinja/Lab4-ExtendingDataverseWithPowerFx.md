@@ -7,7 +7,10 @@ In this lab, you will implement customizations in Dataverse using Power Fx in mo
 It has been three months since WingTip Toys have deployed out the canvas app developed for the sellers in Lab 2 and 3. Due to the success of the initial rollout, additional budget has been allocated to extend out the organisations Power Platform environment, and to introduce a new application for the account management team, which will enable them to better manage all of WingTip Toys customers. After a meeting with the account management team, the following requirements have been identified:
 
 - The account management team would like to have a desktop based application that allows them to manage Contacts from their web browsers.
-- When the Address details of an Account record is updated, the account management team should have the option to update all the related Contact records with the same address details, by pressing a button on the Account form.
+- It is a requirement that all new Accounts in the system are populated with default information in the following key fields. Sellers frequently forget to provide these details, meaning that the account management team have to enter them manually. They have asked if this time consuming task could be automated via a single button press.
+    - **Credit Limit**
+    - **Payment Terms**
+    - **Freight Terms**
 - The account management team were impressed with the age calculation based on a Contacts birthday in the canvas app, and would like the same replicated and persisted in their new application.
 - The account management team frequently encounter issues with the telephone numbers provided by the sellers in the field, which causes issues with their click-to-dial solution. They would like a mechanism automatically validate and format the telephone numbers when they are entered into the system to align to the US standard format of **(NPA) NXX-XXXX**.
 - To assist the account management team in working with all Contacts for an Account, they would like a mechanism to list and then update related Contact records from the Account form. The account management team are expecting a similar user interface to the canvas app.
@@ -128,7 +131,118 @@ This lab will take approximately 45 minutes to complete.
 
 ## Exercise 2: Implement a Custom Command in Dataverse using Power Fx
 
+> [!IMPORTANT]
+> This exercise assumes that you have completed the previous exercise and that you still have the model-driven app designer open for the **Account Management** app. If you are not there, proceed there now.
+
+1. In the model-driven app designer, under the **Navigation** heading, click on the elipses (...) next to the **Accounts** table and then select **Edit command bar** -> **Edit in new tab**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_1.png)
+
+2. A new browser tab will open. In the **Edit command bar for Accounts** dialog, select the **Main form** option and then click on **Edit**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_2.png)
+
+3. The command designer for the Account Main Form will open. Select the **Create component library to enable Power Fx** label in the ribbon and then select **Continue** to create a component library for your ribbon formulas. This may take several minutes:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_3.png)
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_4.png)
+
+> [!IMPORTANT]
+> If this message does not display and the formula bar is editable, then the component library is already enabled. You can skip to step 4.
+
+4. Underneath the **Commands** heading, select **+ New** and then **Command**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_5.png)
+
+5. The **NewCommand** will be added to the ribbon. Drag and drop the **NewCommand** command so that it is positioned directly before the **Activate** command:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_6.png)
+
+6. With the **NewCommand** command selected, modify it's properties on the right-hand of the screen as follows:
+    - **Label**: `Populate Defaults`
+    - **Icon**: Select **Use Icon** and then type and select the **CheckboxComposite** option in the second dropdown.
+    - **Tooltip title**: `Populate Default Information`
+    - **Tooltip description**: `Add missing information to the Account record`
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_7.png)
+
+7. With the **Populate Defaults** command selected in the designer, under **Action**, ensure that the **Run formula** option is selected and then click on **Open formula bar**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_8.png)
+
+8. In the formula bar, enter the following formula. The formula will add default information to the **Credit Limit**, **Payment Terms** and **Freight Terms** fields if they have been left empty by the sellers, and then display a notification to the end user. In addition, the formula does checks to confirm that existing values are not overwritten:
+
+    ```
+    Patch(
+        Accounts,
+        Self.Selected.Item,
+        {
+            'Credit Limit' : If(IsBlank(Self.Selected.Item.'Credit Limit') || Self.Selected.Item.'Credit Limit' <> Self.Selected.Item.'Credit Limit', 1000, Self.Selected.Item.'Credit Limit'),
+            'Payment Terms': If(IsBlank(Self.Selected.Item.'Payment Terms') || Self.Selected.Item.'Payment Terms' <> Self.Selected.Item.'Payment Terms', 'Payment Terms (Accounts)'.'Net 30', Self.Selected.Item.'Payment Terms'),
+            'Address 1: Freight Terms': If(IsBlank(Self.Selected.Item.'Address 1: Freight Terms') || Self.Selected.Item.'Address 1: Freight Terms' <> Self.Selected.Item.'Address 1: Freight Terms', 'Address 1: Freight Terms (Accounts)'.'No Charge', Self.Selected.Item.'Address 1: Freight Terms')
+        }
+    );
+    Notify("Default values populated successfully!")
+    ```
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_9.png)
+
+9. On the properties pane for the **Populate Defaults** command, change the dropdown value of **Visibility** to **Show on condition from formula**, and then select **Open formula bar**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_10.png)
+
+10. In the formula bar, enter the following formula which will only show the command if the **Credit Limit**, **Payment Terms** or **Freight Terms** fields are empty:
+
+    ```
+    IsBlank(Self.Selected.Item.'Credit Limit') || IsBlank(Self.Selected.Item.'Payment Terms') || IsBlank(Self.Selected.Item.'Address 1: Freight Terms')
+    ```
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_11.png)
+
+11. All ribbon customizations have now been applied. Click on **Save and publish** to apply your changes. This may take several minutes to complete:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_12.png)
+
+17. Click on the **Play** icon to open the **Account Management** app in a new tab, so we can test our changes:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_13.png)
+
+18. In the **My Active Accounts** view, select the **Adventure Works (sample)** record to open the Account form:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_14.png)
+
+19. Observe that the **Populate Defaults** command is visible on the ribbon. This is because this Account is missing information in the fields we've defined in our formula. We can navigate to the **Details** tab to confirm this:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_15.png)
+
+20. Select the **Populate Defaults** command. After a few moments, the formula should execute successfully and we can observe the following:
+    - The **Credit Limit** field has been populated with the default value of `1000`.
+    - The **Payment Terms** field has been populated with the default value of **Net 30**.
+    - The **Freight Terms** field has been populated with the default value of **No Charge**.
+    - A notification is displaying at the top of the screen to confirm that the default values have been populated successfully.
+    - The **Populate Defaults** command is no longer visible on the ribbon as all fields have been populated:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_16.png)
+
+21. Select the **Credit Limit** input and replace the data in the field with `2500`.
+
+22. Clear the data in the **Freight** Terms field by selecting the **--Select--** option from the dropdown.
+
+23. Save the Account record.
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E2_17.png)
+
+24. Once the save operation has completed, observe that the **Populate Defaults** button is visible again on the form; this is because one of the conditions for it's visibility has been met again (i.e. Freight Terms is empty).
+
+25. Press the **Populate Defaults** button again. This time, observe that the **Credit Limit** value has been correctly retained and not overwritten by the default value. This confirms that our formulas are all working as expected.
+
+26. Continue to experiment with updating values on this Account record, and others, until you are happy the command is working as expected. When you are finished, close the **Account Management** app and command designer windows.
+
 ## Exercise 3: Create a Formula Column for the Contact Table
+
+> [!IMPORTANT]
+> This exercise assumes that you have completed the previous exercise. If you haven't, complete these steps first before proceeding.
 
 ## Exercise 4: Implement a Low-Code Plug-In
 
