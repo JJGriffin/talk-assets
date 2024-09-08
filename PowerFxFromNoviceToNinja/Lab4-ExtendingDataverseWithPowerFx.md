@@ -502,4 +502,30 @@ To confirm the plug-in works on Create, we need to test the following scenarios:
 
 ## Exercise 5: Embed the Canvas App into the Model-Driven App
 
+> [!IMPORTANT]
+> This exercise assumes you've completed all steps in the previous exercise.
+
+1. Navigate to the [Power Apps Maker Portal](https://make.powerapps.com) and, if not already selected, select the developer environment you created in Lab 0:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_1.png)
+
+2. Click on **Solutions** in the left-hand navigation pane and then click on the **Wingtip Toys PP Solution** solution you created in Lab 3:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_2.png)
+
+3. In the **Objects** view, expand the **Tables** option, then **Account** and then select **Forms**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_3.png)
+
+4. Click on **Add existing form**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_4.png)
+
+5. Tick the option next to the **Account** form and then click on **Add**. The form will be added into your solution. Click on it to open the form designer:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_5.png)
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_6.png)
+
+
 **Congratulations, you've finished Lab 4** 🥳
