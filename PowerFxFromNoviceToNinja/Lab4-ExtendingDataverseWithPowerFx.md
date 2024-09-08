@@ -320,6 +320,186 @@ This lab will take approximately 45 minutes to complete.
 
 ## Exercise 4: Implement a Low-Code Plug-In
 
+> [!IMPORTANT]
+> This exercise assumes you've completed the previous exercise and that you're still in the **Wingtip Toys PP Solution** view. If you are not there, proceed there now.
+>
+> At the time authoring this lab, low-code plug-ins are still in public preview. You may encounter issues or breaking changes with these instructions. In case of any issues, please speak with your instructor.
+
+1. In the solution view, click on **Back to solutions**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_1.png)
+
+2. On the Power Apps maker portal, click on **Apps**, select the button for **Shared with me** and then play the **Dataverse Accelerator App**. You will need to hover the mouse cursor over the app name for the **Play** icon to appear:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_2.png)
+
+> [!IMPORTANT]
+> The Dataverse accelerator provides a seperate interface for customers to trial and experiment with preview features, such as low-code plug-ins. While this functionality is in preview, we must always use the accelerator to create and manage low-code plug-ins. For more information on the accelerator app, [refer to the Microsoft Learn site](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/dataverse-accelerator/dataverse-accelerator).
+
+3. In the **Dataverse Accelerator App**, click on **+ New plug-in** -> **Automated plug-in** in the ribbon:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_3.png)
+
+4. On the **New** form, populate the form as indicated below. Note that you will need to expand the **Advanced options** heading to see all fields:
+        - **Display Name**: `Validate and Format Contact Telephone Number On Create`
+        - **Table**: Ensure that **Contact** is selected from the dropdown.
+        - **Run this plug-in when the row is**: Tick the option for **Created**
+        - **When should this run**: Select **Post-Operation**.
+        - **Solution**: Select the **Wingtip Toys PP Solution** solution.
+    
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_4.png)
+
+> [!IMPORTANT]
+> If the **When should this run** options are not visible, try refreshing the page.
+>
+> You may receive the following error when changing values in the form; it can be safely disregarded: `A validation error occurred. The value 10 of 'type' on record of type 'environmentvariabledefinition' is outside the valid range. Accepted Values: 100000000,100000001,100000002,100000003,100000004,100000005`
+
+5. In the **Expression** field, add the following Power Fx formula. The formula uses the `IsMatch()` function to validate whether the **Business Phone** entered by the user when creating a Contact is formatted correctly. If not, then the value is substitued and formatted correctly. If a user attempts to create a Contact containing a **Business Phone** of incorrect length or containing letters, an error will be thrown:
+
+    ```
+    If(
+        !IsMatch(NewRecord.'Business Phone', "^(\([0-9]{3}\) |[0-9]{3}-)[0-9]{3}-[0-9]{4}$"),
+        If(
+            Len(NewRecord.'Business Phone') = 10 && IsNumeric(NewRecord.'Business Phone'),
+            Set(
+                NewRecord.'Business Phone',
+                Concatenate(
+                    "(",
+                    Left(NewRecord.'Business Phone', 3),
+                    ") ",
+                    Mid(NewRecord.'Business Phone', 4, 3),
+                     "-",
+                    Right(NewRecord.'Business Phone', 4)
+                )
+            ),
+            Error("Invalid telephone number format. Please enter a number that is 10 characters in length and contains numbers only.")
+        )
+    )
+    ```
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_5.png)
+
+6. Press **Save** to create the plug-in:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_6.png)
+
+> [!IMPORTANT]
+> When saving the plug-in, you may receive the following error message: `An unexpected error occurred while creating FxExpression: It is invalid to create component fxexpression with the same export key value(s) as an existing component. Please change the key. The current value(s) are uniquename: wtt_ValidateandFormatContactTelephoneNumber`. Provided that there is an additional message stating `Plug-in successfully saved`, you can disregard this error.
+
+![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_7.png)
+
+7. Click on **Back** to return to the previous page:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_8.png)
+
+8. We now need to create the plug-in that will trigger whenever a Contact is updated. Click on **+ New plug-in** -> **Automated plug-in** again in the ribbon.
+
+9. On the **New** form, populate the form as indicated below. Note that you will need to expand the **Advanced options** heading to see all fields:
+        - **Display Name**: `Validate and Format Contact Telephone Number On Update`
+        - **Table**: Ensure that **Contact** is selected from the dropdown.
+        - **Run this plug-in when the row is**: Tick the option for **Updated**
+        - **When should this run**: Select **Post-Operation**.
+        - **Solution**: Select the **Wingtip Toys PP Solution** solution.
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_9.png)
+
+> [!IMPORTANT]
+> If the **When should this run** options are not visible, try refreshing the page.
+>
+> You may receive the following error when changing values in the form; it can be safely disregarded: `A validation error occurred. The value 10 of 'type' on record of type 'environmentvariabledefinition' is outside the valid range. Accepted Values: 100000000,100000001,100000002,100000003,100000004,100000005`
+
+10. In the **Expression** field, add the following Power Fx formula. The formula is virtually identical to the one we used for the **Created** plug-in, but this time, we use `OldRecord` to access details regarding the existing Contact:
+
+    ```
+    If(
+        !IsMatch(OldRecord.'Business Phone', "^(\([0-9]{3}\) |[0-9]{3}-)[0-9]{3}-[0-9]{4}$"),
+        If(
+            Len(OldRecord.'Business Phone') = 10 && IsNumeric(OldRecord.'Business Phone'),
+            Set(
+                NewRecord.'Business Phone',
+                Concatenate(
+                    "(",
+                    Left(OldRecord.'Business Phone', 3),
+                    ") ",
+                    Mid(OldRecord.'Business Phone', 4, 3),
+                    "-",
+                    Right(OldRecord.'Business Phone', 4)
+                )
+            ),
+            Error("Invalid telephone number format. Please enter a number that is 10 characters in length and contains numbers only.")
+        )
+    )
+    ```
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_10.png)
+
+11. Press **Save** to create the plug-in.
+
+12. Click on **Back** to return to the previous page.
+
+13. Click on the **Automated** button and verify that the two plug-ins we created are listed:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_11.png)
+
+14. Once created, low-code plug-ins will be registered and begin to execute when the conditions we've defined are met. We can now test these plug-ins in the **Account Management** app. Click on the **Dataverse Accelerator App** label on the top of the screen and the select the **Account Management** app in the **App** dialog that appears:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_12.png)
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_13.png)
+
+15. In the **Account Management** app, click on **Contacts** and then select **+ New** to create a new Contact:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_14.png)
+
+To confirm the plug-in works on Create, we need to test the following scenarios:
+- **Scenario 1**: Enter a telephone number in a valid format (e.g. `(123) 456-7890`). The record should save successfully with no error and retaining the correctly formatted telephone number.
+- **Scenario 2**: Enter a telephone number in an invalid format, but containing only numbers and of the required length of 10 characters (e.g. `1234567890`). The record should save successfully and format the telephone number correctly.
+- **Scenario 3**: Enter a telephone number in an invalid telephone number, containing only numbers but not meeting the length requirements (e.g. `123456789`). We should receive an error message and the record should not save.
+- **Scenario 4**: Enter a telephone number that meets the length requirements, but containing a letter (e.g. `123456789a`). We should receive an error message and the record should not save.
+
+16. Proceed to test **Scenario 1** by populating the Contact form with the following values and then pressing **Save**:
+    - **First Name**: `Jane`
+    - **Last Name**: `Doe`
+    - **Business Phone**: `(123) 456-7890`
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_15.png)
+
+17. The record should save successfully and the **Business Phone** field should retain the value we entered. Press **New** on the ribbon to test the next scenario:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_16.png)
+
+18. Proceed to test **Scenario 2** by populating the Contact form with the following values and then pressing **Save**:
+    - **First Name**: `John`
+    - **Last Name**: `Doe`
+    - **Business Phone**: `1234567890`
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_17.png)
+
+19. The record should save successfully and the **Business Phone** field should be formatted correctly:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_18.png)
+
+20. Press **New** on the ribbon to test the next scenario. Populate the Contact form with the following values and then press **Save**:
+    - **First Name**: `Joe`
+    - **Last Name**: `Sixpack`
+    - **Business Phone**: `123456789`
+
+21. This time you, you should receive an error message, confirming that the plug-in validation is working correctly. Press **OK** to dismiss the dialog. Observe that we are prevented from saving the record, due to the error:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_19.png)
+
+22. On the **New Contact** form, replace the **Business Phone** value with `123456789a` and then press **Save**. Confirm that again you receive an error message and are prevented from saving the record. Press **OK** again to dismiss the dialog:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_20.png)
+
+23. Click the back arrow on the browser and, when prompted about unsaved changes, click **Discard changes**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E4_21.png)
+
+24. You should now be on the **John Doe** Contact record created in step 18. Proceed to test the same scenarios in steps 16-22 for the **Updated** plug-in by supplying a mixture of valid and invalid values. Keep testing until you are satisified the plug-in is working as expected.
+
+25. Close the **Account Management** app when you are finished testing.
+
 ## Exercise 5: Embed the Canvas App into the Model-Driven App
 
 **Congratulations, you've finished Lab 4** 🥳
