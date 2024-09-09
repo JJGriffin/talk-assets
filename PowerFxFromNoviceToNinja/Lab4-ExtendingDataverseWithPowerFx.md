@@ -513,19 +513,127 @@ To confirm the plug-in works on Create, we need to test the following scenarios:
 
     ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_2.png)
 
-3. In the **Objects** view, expand the **Tables** option, then **Account** and then select **Forms**:
+3. To embed the canvas app into the model-driven app, we require some details regarding the canvas app. On the **All** Solution view, locate the **Lab 2** canvas app and note down the **Name** value of the app. It should resemble the following: `wtt_lab2jg_eba0`:
 
     ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_3.png)
 
-4. Click on **Add existing form**:
+4. Click on the vertical elipses next to the **Lab 2** canvas app and click on **Details**:
 
     ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_4.png)
 
-5. Tick the option next to the **Account** form and then click on **Add**. The form will be added into your solution. Click on it to open the form designer:
+5. On the details page for the **Lab 2** app, locate the **Web link** URL. Copy the URL to your clipboard and paste it onto an empty Notepad file:
 
     ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_5.png)
 
+6. When pasted into notepad, the URL should resemble the example below::
+
+    ```
+    https://apps.powerapps.com/play/e/f0d69e0b-e5fa-45b1-8bf4-876c02240e63/a/1e4ebf48-5d5b-4e27-986a-93c33209f8e6?tenantId=c71a2ce3-a6e7-4d8a-88e2-d9b05fcb73f6&sourcetime=1725902007787
+    ```
+    Extract from the URL the Globally Unique Identifier (GUID) of the application, which directly follows the `/a/` portion of the URL, and ends after the `?`. So in the example above, the GUID would be `1e4ebf48-5d5b-4e27-986a-93c33209f8e6`. Note this GUID down along with the app name; we will need these again shortly.
+
+7. In the **Objects** view, expand the **Tables** option, then **Account** and then select **Forms**:
+
     ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_6.png)
+
+8. Click on **Add existing form**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_7.png)
+
+9. Tick the option next to the **Account** form and then click on **Add**. The form will be added into your solution. Click on it to open the form designer:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_8.png)
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_9.png)
+
+10. In the form designer, select **Components** and then the click **1-column tab** component. This will add a new tab to the form that will be used to host our embedded canvas app:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_10.png)
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_11.png)
+
+11. Select the **New Tab** in the designer view. In the properties pane, update the properties as listed below:
+    - **Label**: `Contact Manager`
+    - **Name**: `tab_contactmanager`
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_12.png)
+
+12. Select the **New Section** in the designer view. In the properties pane, update the properties as listed below:
+    - **Label**: `Canvas App`
+    - **Name**: `section_contactmanager`
+    - **Hide label**: Checked
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_13.png)
+
+13. With the **section_contactmanager** section selected, expand the **Display** heading in the **Components** area and drag and drop the **Canvas app** control into the section:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_14.png)
+
+14. The **Add Canvas app** dialog will appear. Populate the dialog with the following details and then press **Done**:
+    - **Entity** name: `Account`
+    - **App name**: The name of the canvas app you noted down in step 3.
+    - **App ID**: The GUID of the canvas app you noted down in step 6.
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_15.png)
+
+15. After a few moments, the form designer should update and display the `Lab 2` app in an embedded format:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_16.png)
+
+16. Click on **Save and publish** to save your changes:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_17.png)
+
+16. Although the app is now embedded correctly, there is no integration in functionality between the model-driven app form and the app itself. We want to adjust the app so it will only display **Contacts** that relate to the currently selected **Account** record. To do this, we need to make some specific modifications to the app and, first, include a specialised control in the app itself - the [ModelDrivenFormIntegration](https://learn.microsoft.com/en-us/power-apps/maker/model-driven-apps/embedded-canvas-app-properties-actions) control. To add this to an existing app, select the **New canvas app** control in the **Tree view** and then, in the **Properties** pane, click on **Customize canvas app**:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_18.png)
+
+17. The **Lab 2** canvas app will open a new browser tab. If prompted, click on **Skip** on the **Welcome to Power Apps Studio** prompt that appears.
+
+18. Copy the URL of the app designer into a Notepad file. It should resemble the following:
+
+    ```
+    https://make.preview.powerapps.com/e/b27a61c0-bbde-493f-87b1-5842cf45dc0a/canvas/?action=edit&app-id=%2Fproviders%2FMicrosoft.PowerApps%2Fapps%2F1e4ebf48-5d5b-4e27-986a-93c33209f8e6&solution-id=08c0a93f-076a-ef11-a671-7c1e522f277e&source=ModelDrivenFormIntegration
+    ```
+
+19. Add an additional query parameter value to this URL with a value of `&is-hosted=true`. This will instruct the designer to add the control to the app when used. The resulting URL should resemble the following:
+
+    ```
+    https://make.preview.powerapps.com/e/b27a61c0-bbde-493f-87b1-5842cf45dc0a/canvas/?action=edit&app-id=%2Fproviders%2FMicrosoft.PowerApps%2Fapps%2F1e4ebf48-5d5b-4e27-986a-93c33209f8e6&solution-id=08c0a93f-076a-ef11-a671-7c1e522f277e&source=ModelDrivenFormIntegration&is-hosted=true
+    ```
+20. Copy and paste this URL in the canvas app designer window and hit return. After a few moments, the app should reload and the **ModelDrivenFormIntegration** control should be added to the app:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_19.png)
+
+22. Add the **Accounts** table as a data source to the app by clicking on **Data**, then **+ Add data**, and then selecting **Accounts**. This is required for the next step:
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_20.png)
+
+23. Select the **ModelDrivenFormIntegration** control and adjust the **DataSource** property so that it is pointing to the newly added **Accounts** table:
+
+    ```
+    Accounts
+    ```
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_21.png)
+
+21. Now that the **ModelDrivenFormIntegration** control has been configured correctly, we can detect whether or not the app is currently being embedded and adjust specific features within the app. For example, we can alter the title at the top of the app to display the name of the parent **Account** if existing. Modify the **Text** property of the **Header Label** label to the following formula:
+
+    ```
+    If(IsBlank(ModelDrivenFormIntegration.Item.Account), "Wingtip Toys Contacts", Concatenate(ModelDrivenFormIntegration.Item.'Account Name', "'s Contacts"))
+    ```
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_22.png)
+
+22. Adjust the following additional properties on the **Header Label**, to ensure that the title always displays correctly, even when the app is embedded. The app should resemble the below screenshot if configured correctly:
+
+    | Property | Formula |
+    | --- | --- |
+    | **Width** | `576` |
+    | **X** | `395` |
+    | **Y** | `14` |
+
+    ![](Images/Lab4-ExtendingDataverseWithPowerFx/E5_23.png)
 
 
 **Congratulations, you've finished Lab 4** 🥳
