@@ -114,7 +114,7 @@ An authentication profile allows us to connect to one, or several, Dataverse env
 
 2. Sign in using the same login credentials that were used to configure the developer environment in Exercise 1.
 
-3. Once signed in, you will see your developer environment appear in the list underneath **Environments & Solutions**. This may take several minutes to appear:
+3. Once signed in, you will see your new Auth Profile in the list. This may take several minutes to appear:
 
     ![](Images/Lab0-ConfigureLabEnvironment/E4_2.png)
 

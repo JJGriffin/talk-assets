@@ -28,19 +28,36 @@ This lab will take approximately 30 minutes.
 
 ## Exercise 1: Connect to Dataverse from the PAC CLI to execute Power Fx
 
-1. If Visual Studio Code is not open from Lab 0, open it now.
-2. Open a new terminal window by selecting **Terminal** from the top menu, and then **New Terminal**:
+1. Navigate to the [Power Apps Maker Portal](https://make.powerapps.com) and, if not already selected, select the developer environment you created in Lab 0:
    
     ![](Images/Lab1-WorkingWithBasicFunctions/E1_1.png)
 
-3. In the terminal window, type the following command and then press **Enter**:
-
-    ```
-    pac power-fx repl
-    ```
-4. The Power Fx REPL will start. Once connected, you will see a prompt that resembles the below. This indicates that the REPL is ready to receive new commands:
+2. Click on the gear icon in the top right of the Maker portal, and the click **Session details**:
 
     ![](Images/Lab1-WorkingWithBasicFunctions/E1_2.png)
+
+3. In the **Power apps session details** dialog, copy the **Instance URL** value onto a Notepad file. It should resemble the following format: `https://<your-environment-name>.crmxx.dynamics.com`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E1_3.png)
+
+4. If Visual Studio Code is not open from Lab 0, open it now.
+5. Open a new terminal window by selecting **Terminal** from the top menu, and then **New Terminal**:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E1_4.png)
+
+6. In the terminal window, type in the following command, substituting the URL you copied in step 3 for the **\<Environment URL>** and then press **Enter**:
+
+    ```
+    pac power-fx repl --environment "<Environment URL>"
+    ```
+> [!IMPORTANT]
+> Make sure the URL is surrounded in double quotes
+
+![](Images/Lab1-WorkingWithBasicFunctions/E1_5.png)
+
+4. The Power Fx REPL will start. Once connected, you will see a prompt that resembles the below. This indicates that the REPL is ready to receive new commands:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E1_6.png)
 
 ## Exercise 2: Execute basic calculations using Power Fx
 
