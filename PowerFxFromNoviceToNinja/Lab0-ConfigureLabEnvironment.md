@@ -49,7 +49,7 @@ Developer environments allow for any Microsoft 365 user (subject to any tenant l
 Visual Studio Code is a lightweight integrated development environment (IDE) that allows developers to code in a variety of languages and work with different services, including the Power Platform. We will install Visual Studio Code on our machines, so that we can install the Power Platform Tools extension in the next exercise. 
 
 > [!IMPORTANT]
-> If you already have Visual Studio Code installed on your machine, you can skip this exercise and move to Exercise 3. This exercise assumes you are working from a Windows environment.
+> If you already have Visual Studio Code installed on your machine, you can skip this exercise and move to Exercise 3. This exercise assumes you are working from a Windows environment. If your administrator has disabled the ability to install Visual Studio Code or if you encounter any other issues following these steps, then skip this exercise; an alternative set of instructions will be provided later in the labs.
 
 1. Navigate to the [Visual Studio Code](https://code.visualstudio.com/) website and click on **Download for Windows**:
 

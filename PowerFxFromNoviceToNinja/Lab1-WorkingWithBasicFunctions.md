@@ -28,6 +28,9 @@ This lab will take approximately 30 minutes.
 
 ## Exercise 1: Connect to Dataverse from the PAC CLI to execute Power Fx
 
+> [!IMPORTANT]
+> If you encountered any issues installing Visual Studio Code or the Power Platform Tools extension in Lab 0, then please skip ahead to Exercise 4, and then Exercise 5 and 6.
+
 1. Navigate to the [Power Apps Maker Portal](https://make.powerapps.com) and, if not already selected, select the developer environment you created in Lab 0:
    
     ![](Images/Lab1-WorkingWithBasicFunctions/E1_1.png)
@@ -45,7 +48,7 @@ This lab will take approximately 30 minutes.
    
     ![](Images/Lab1-WorkingWithBasicFunctions/E1_4.png)
 
-6. In the terminal window, type in the following command, substituting the URL you copied in step 3 for the **\<Environment URL>** and then press **Enter**:
+5. In the terminal window, type in the following command, substituting the URL you copied in step 3 for the **\<Environment URL>** and then press **Enter**:
 
     ```
     pac power-fx repl --environment "<Environment URL>"
@@ -55,11 +58,14 @@ This lab will take approximately 30 minutes.
 
 ![](Images/Lab1-WorkingWithBasicFunctions/E1_5.png)
 
-4. The Power Fx REPL will start. Once connected, you will see a prompt that resembles the below. This indicates that the REPL is ready to receive new commands:
+6. The Power Fx REPL will start. Once connected, you will see a prompt that resembles the below. This indicates that the REPL is ready to receive new commands:
 
     ![](Images/Lab1-WorkingWithBasicFunctions/E1_6.png)
 
-## Exercise 2: Execute basic calculations using Power Fx
+## Exercise 2: Execute basic calculations using Power Fx REPL
+
+> [!IMPORTANT]
+> If you encountered any issues installing Visual Studio Code or the Power Platform Tools extension in Lab 0, or in completing Exercise 1, then please skip ahead to Exercise 4, and then Exercise 5 and 6.
 
 1. In the Power Fx REPL, type the following command and then press **Enter**:
 
@@ -118,7 +124,10 @@ This lab will take approximately 30 minutes.
 
 12. Leave the Power Fx REPL open, as you will use it again in the next exercise.
 
-## Exercise 3: Execute basic functions using Power Fx
+## Exercise 3: Execute basic functions using Power Fx REPL
+
+> [!IMPORTANT]
+> If you encountered any issues installing Visual Studio Code or the Power Platform Tools extension in Lab 0, or in completing Exercise 1, then please skip ahead to Exercise 4, and then Exercise 5 and 6.
 
 1. In the Power Fx REPL, run the following functions to intialize some variables; these will be used throughout the rest of this exercise:
 
@@ -210,7 +219,7 @@ This lab will take approximately 30 minutes.
 
     ![](Images/Lab1-WorkingWithBasicFunctions/E3_9.png)
 
-18. Execute the same function again but this time, specify a Units argument of **TimeUnit.Years**. Observe the new result, which is now `"2025-03-15"`:
+18. Execute the same function again but this time, specify a Units argument of **TimeUnit.Months**. Observe the new result, which is now `"2025-03-15"`:
 
     ```
     Text(DateAdd(varDate, 5, TimeUnit.Months), "yyyy-mm-dd")
@@ -297,7 +306,10 @@ This lab will take approximately 30 minutes.
 
 10. Leave the canvas app open, as you will continue working with it in the next exercise.
 
-## Exercise 5: Execute basic Power Fx functions in a canvas app
+## Exercise 5 (Optional) - Execute basic Power Fx calculations in a canvas app
+
+> [!IMPORTANT]
+> This optional exercise is for any student who encountered issues installing Visual Studio, the Power Platform Tools extension, or with the Power Fx REPL. If you did not encounter any issues, please skip ahead to Exercise 7.
 
 1. You should still be in the Power Apps studio for the canvas app created in Exercise 4. If not, navigate back to this now.
 2. In the designer window, with **Screen 1** selected, click on the **Insert** tab from the top menu, and then select **Label**:
@@ -308,15 +320,253 @@ This lab will take approximately 30 minutes.
 
     ![](Images/Lab1-WorkingWithBasicFunctions/E5_2.png)
 
+4. With the label control selected, navigate to the control property dropdown, select **Text** and configure the formula as indicated below:
+
+    ```
+    73 + 156
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_3.png)
+
+5. The label will now display the result of the calculation, `229`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_4.png)
+
+6. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    156 - 123
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_5.png)
+
+7. The label will now display the result of the calculation, `33`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_6.png)
+
+8. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    (325 + 123) / (12 - 3) * 2
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_7.png)
+
+9. The label will now display the result of the calculation, `99.55555556`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_8.png)
+
+10. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    123 / 0
+    ```
+
+11. Observe that the formula results in an error. Division by zero will always result in an error in Power Fx:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_9.png)
+
+12. Modify the **Text** property of the label to attempt to return the result of the following calculation, but this time, use the **IfError()** function to handle the division by zero scenario:
+
+    ```
+    IfError(123 / 0, 0)
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_10.png)
+
+13. The label will now display the result of the calculation, `0`, instead of an error:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E5_11.png)
+
+> [!IMPORTANT]
+> Handling division by zero scenarios is a common requirement in programming, and it's always a good idea to use the **IfError()** function to prevent any unexpected errors from occurring.
+
+14. Using the previous examples as a guide, experiment with other basic calculations using the label control. For example, attempt to calculate the following values:
+- Sixty five (65) multiplied by twenty three (23).
+- One hundred and twenty three (123) divided by three (3).
+- Combine the previous two calculations into a single formula, that is then divided together.
+
+15. Leave the canvas app open, as you will continue working with it in the next exercise.
+
+## Exercise 6 (Optional) - Execute basic Power Fx functions in a canvas app
+
+> [!IMPORTANT]
+> This optional exercise is for any student who encountered issues installing Visual Studio, the Power Platform Tools extension, or with the Power Fx REPL. If you did not encounter any issues, please skip ahead to Exercise 7.
+
+1. You should still be in the Power Apps studio for the canvas app created in Exercise 4. If not, navigate back to this now.
+2. Select the **App** control, navigate to the **OnStart** property and replace the formula with the following:
+
+    ```    
+    ClearCollect(
+        galleryData,
+        ForAll(
+            Sequence(20),
+            {
+                ID: Text(Value),
+                Name: "Name " & Text(Value),
+                EmailAddress: "email" & Text(Value) & "@example.com",
+                DietaryPreferences: "Preference " & Text(Value),
+                Budget: 25 * Value
+            }
+        )
+    );
+    Set(varString, "Sample string value."); 
+    Set(varNumber, 456); 
+    Set(varDate, Date(2024, 10, 15)); 
+    Set(varNow, Now())
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_1.png)
+
+3. Click the elipses (...) on the **App** control and select **Run OnStart**; this will ensure that the new variables are initialized with the expected values
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_2.png)
+
+
+4. Modify the **Text** property of the label added in the previous exercise to attempt to return the result of the following calculation:
+
+    ```
+    If(varString = "Sample string value.", true, false)
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_3.png)
+
+5. The label will now display the result of the calculation, `true`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_4.png)
+
+6. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    If(varString = "Another sample string value.", true, false)
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_5.png)
+
+7. The label will now display the result of the calculation, `false`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_6.png)
+
+8. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    varString & " This is a new sentence."
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_7.png)
+
+9. The label will now display the result of the calculation, `Sample string value. This is a new sentence.`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_8.png)
+
+10. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    Concatenate(varString, " This is a new sentence.")
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_9.png)
+
+11. The label will now display the result of the calculation, which should be identical to step 9.
+
+> [!IMPORTANT]
+> Often there will be multiple approaches to achieving the same outcome with Power Fx. In the previous example, both the & operator and the `Concatenate(`) function were used to concatenate two strings together. Both approaches are valid, but the `Concatenate()` function is more explicit and easier to read. Regardless of which approach you choose, it's important to be consistent in your use of functions and operators throughout your Power Fx formulas.
+
+12. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    varNumber + 123
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_10.png)
+
+13. The label will now display the result of the calculation, `579`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_11.png)
+
+14. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    Sum(varNumber, 123)
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_12.png)
+
+15. The label should continue to display the same result as step 13, `579`.
+
+> [!IMPORTANT]
+> Usage of the **Sum()** function or the `+` operator will achieve the same outcome. Again, consistency is always key, and you should avoid mixing different approaches within your formulas or apps.
+
+16. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    Text(varNumber) * 23
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_13.png)
+
+17. The label will now display the result of the calculation, `10488`. Notice that the expected result is returned, despite the fact that varNumber has been cast as a string; provided that the underlying value is a valid number, Power Fx will automatically convert the string to a number when required::
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_14.png)
+
+18. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    Text(DateAdd(varDate, 5), "yyyy-mm-dd")
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_15.png)
+
+19. The label will now display the result of the calculation, `"2024-10-20"`, which is five days after the original date. By default, if the third argument for Units is not specified, **TimeUnit.Days** is used::
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_16.png)
+
+20. Modify the **Text** property of the label to now include a Units argument of **TimeUnit.Months**:
+
+    ```
+    Text(DateAdd(varDate, 5, TimeUnit.Months), "yyyy-mm-dd")
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_17.png)
+
+21. The label will now display the new result of `2025-03-15`:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_18.png)
+
+> [!IMPORTANT]
+> Being explicit with the arguments you pass to functions can help to make your formulas more readable and easier to understand.
+
+22. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    DateDiff(varNow, varDate)
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_19.png)
+
+23. The label will now display the result of the calculation, which should be the number of day(s) between the two dates. In the example screenshot below, the result is `30`; the result may vary depending on the current date and time:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_20.png)
+
+24. Modify the **Text** property of the label to attempt to return the result of the following calculation:
+
+    ```
+    DateDiff(varNow + 5, varDate)
+    ```
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_21.png)
+
+25. The label will now display the result of the calculation, which should be the number of day(s) between the two dates. In the example screenshot below, the result is `25`; the result may vary depending on the current date and time. Notice that it's possible to use arithmetic operators to increase `+` or decrease `-` a date value by days:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E6_22.png)
+
+26. Select the label control and press the **Delete** key to remove it from the screen.
+27. Leave the canvas app open, as you will continue working with it in the next exercise.
+
+## Exercise 7: Execute basic Power Fx functions in a canvas app
+
+1. You should still be in the Power Apps studio for the canvas app created in Exercise 4. If not, navigate back to this now.
+2. In the designer window, with **Screen 1** selected, click on the **Insert** tab from the top menu, and then select **Label**:
+   
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_1.png)
+
+3. A new label control will be added to the screen. Drag and drop it onto the right-hand side of the screen:
+
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_2.png)
+
 4. With the label control selected, navigate to the control property dropdown, select **Color** and configure the formula as indicated below:
 
     ```
      Color.Red
     ```
    
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_3.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_3.png)
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_4.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_4.png)
 
 5. Repeat the same steps in 4, but this time, select and configure the following properties as indicated in the table below. Once configured correctly, the app screen should resemble the screenshot below:
 
@@ -330,7 +580,7 @@ This lab will take approximately 30 minutes.
     | **X** | `750` |
     | **Y** | `325` |
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_5.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_5.png)
 
 6. Modify the **Text** property of the label to attempt to return a count of all rows from the gallery:
 
@@ -340,11 +590,11 @@ This lab will take approximately 30 minutes.
 
 7. Notice that formula returns an error, as the **CountRows()** function supports a table argument only:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_6.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_6.png)
 
 8. Let's fix the error by creating a collection to store the gallery data instead. First, right click on the **App** option in the Tree view and ensure the **OnStart** property is selected:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_7.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_7.png)
 
 9. Enter the following formula in the bar, which will initialise a collection with the same data as the gallery:
 
@@ -371,15 +621,15 @@ This lab will take approximately 30 minutes.
     ```
     galleryData
     ```
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_8.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_8.png)
 
 11. The gallery will display no records. This is because the **OnStart** event has not been executed. Right click the **App** option in the Tree view and select **Run OnStart**:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_9.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_9.png)
 
 12. The gallery will now display the same records as before:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_10.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_10.png)
 
 > [!IMPORTANT]
 > Usage of the **App.OnStart** is generally discouraged, as it can lead to performance issues with your app. Microsoft have provided an alternative event, the **App.StartScreen** property, that is recommended to be used instead. For the purposes of this simple exercise, usage of **App.OnStart** is acceptable. For further details regarding the **App.StartScreen** property, please refer to the [following blog post](https://www.microsoft.com/en-us/power-platform/blog/power-apps/app-startscreen-a-new-declarative-alternative-to-navigate-in-app-onstart/).
@@ -391,7 +641,7 @@ This lab will take approximately 30 minutes.
     ```
 14. The label will now display the correct count of records, `20`:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_11.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_11.png)
 
 > [!IMPORTANT]
 > It is generally recommended to always work with collections, so that you have the fullest range of support when using different Power Fx functions. In addition, collections can afford several performance benefits for your applications.
@@ -403,7 +653,7 @@ This lab will take approximately 30 minutes.
     ```
 16. The label will now display the correct sum of all Budget values, `5250`; however, it is not formatted as a proper currency value:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_12.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_12.png)
     
 17. Modify the **Text** property of the label to return the sum of all the Budget values from the collection, formatted as a currency value:
 
@@ -413,7 +663,7 @@ This lab will take approximately 30 minutes.
 
 18. The label will now display the correct sum of all Budget values, `5,250.00`, formatted as a currency value. The preceding currency symbol will always be formatted based on the locale of the user; in the example screenshot below, `en-gb` locale is configured, meaning that the GBP symbol is used:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_13.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_13.png)
 
 19. The **Text** function supports overrides for the user locale. Modify the formula again, but this time, specify the locale code for Germany, `de-DE`:
 
@@ -422,7 +672,7 @@ This lab will take approximately 30 minutes.
     ```
 20. The label will now display the correct sum of all Budget values, `5.250,00`, formatted with the correct EUR currency symbole for Germany:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_14.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_14.png)
 
 21. Modify the **Text** property of the label to return a conditional count of all rows in the **galleryData** control, where the **ID** value is greater than `5`:
 
@@ -431,7 +681,7 @@ This lab will take approximately 30 minutes.
     ```
 22. The label will now display the correct count of records, `15`:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_15.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_15.png)
 
 23. Experiment further with the label control, and see if you can get the label to display the following information. Use the [Power Fx formula reference for canvas apps documentation to help you if you get stuck](https://learn.microsoft.com/en-us/power-platform/power-fx/formula-reference-canvas-apps):
 
@@ -443,12 +693,12 @@ This lab will take approximately 30 minutes.
 
 24. Save the app and your changes by clicking on the **Save** icon in the top right of the designer view:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_16.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_16.png)
 
 25. Click on the **Back** button on the top right of the screen to return to the Power Apps maker portal, and press **Leave** to confirm; we will not be returning to this app in the next lab:
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_17.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_17.png)
 
-    ![](Images/Lab1-WorkingWithBasicFunctions/E5_18.png)
+    ![](Images/Lab1-WorkingWithBasicFunctions/E7_18.png)
 
 **Congratulations, you've finished Lab 1** 🥳
