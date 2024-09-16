@@ -87,7 +87,7 @@ This lab will take approximately 30 minutes to complete.
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_1.png)
 
-2. On the ribbon, click on the **Insert** tab, and then click on **Vertical gallery**:
+2. With the **Contact Screen** screen selected, on the ribbon, click on the **Insert** tab, and then click on **Vertical gallery**:
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_2.png)
 
@@ -107,7 +107,6 @@ This lab will take approximately 30 minutes to complete.
     | Property | Formula |
     | --- | --- |
     | **Height** | `680` |
-    | **Size** | `36` |
     | **Width** | `1366` |
     | **X** | `0` |
     | **Y** | `88` |
@@ -175,11 +174,11 @@ This lab will take approximately 30 minutes to complete.
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_17.png)
 
-14. With the **Tree view** icon selected, click on the **Contact Screen** screen in the tree view:
+14. With the **Tree view** icon selected, click on the **Contact Form** screen in the tree view:
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_18.png)
 
-15. On the **Contact Screen** screen, click on the **Insert** tab, and then click on **Edit form**:
+15. On the **Contact Form** screen, click on the **Insert** tab, and then click on **Edit form**:
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_19.png)
 
@@ -222,7 +221,7 @@ This lab will take approximately 30 minutes to complete.
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_25.png)
 
-22. Repeat step 21, but this time, search and tick the box for the following fields. Once all fields are ticked, click on the **Add** button:
+22. Repeat step 21, but this time, search and tick the box for the following fields. If any other fields are ticked, make sure they are unticked. Once all required fields are ticked, click on the **Add** button:
     
     - **Last Name**
     - **Email**
@@ -258,7 +257,7 @@ This lab will take approximately 30 minutes to complete.
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_31.png)
 
-30. On the **Contact Screen** screen, click on the **Insert** tab, and then search for and select the **Back arrow** control:
+30. On the **Contact Form** screen, click on the **Insert** tab, and then search for and select the **Back arrow** control:
 
 31. Rename the newly inserted **Arrow1** control to **Back Arrow**:
 
@@ -278,7 +277,7 @@ This lab will take approximately 30 minutes to complete.
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_35.png)
 
-34. On the **Contact Screen** screen, click on the **Insert** tab, and then search for and select the **Button** control:
+34. On the **Contact Form** screen, click on the **Insert** tab, and then search for and select the **Button** control:
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_36.png)
 
@@ -299,7 +298,7 @@ This lab will take approximately 30 minutes to complete.
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_39.png)
 
-38. On the **Contact Screen** screen, click on the **Insert** tab, and then search for and select the **Label** control:
+38. On the **Contact Form** screen, click on the **Insert** tab, and then search for and select the **Label** control:
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E2_40.png)
 
@@ -315,6 +314,7 @@ This lab will take approximately 30 minutes to complete.
 
     | Property | Formula |
     | --- | --- |
+    | **Align** | `Align.Center` |
     | **FontWeight** | `FontWeight.Bold` |
     | **Height** | `260` |
     | **Width** | `250` |
@@ -504,7 +504,7 @@ Note that it would be possible to add the MSN Weather connector directly into th
 
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E4_19.png)
 
-17. Click on the **Get Weather** button in the **Contact Screen** screen, and with the **OnSelect** property selected in the formula dropdown, adjust the formula value as follows:
+17. Click on the **Get Weather** button in the **Contact Form** screen, and with the **OnSelect** property selected in the formula dropdown, adjust the formula value as follows:
 
     ```
     Set(varWeatherForecast, GetWeatherForLocation.Run(Concatenate('Contact Gallery'.Selected.'Address 1: Street 1', ",", 'Contact Gallery'.Selected.'Address 1: City', ",", 'Contact Gallery'.Selected.'Address 1: ZIP/Postal Code', ",", 'Contact Gallery'.Selected.'Address 1: Country/Region')).forecast)
