@@ -556,11 +556,11 @@ Note that it would be possible to add the MSN Weather connector directly into th
 > [!IMPORTANT]
 > This exercise assumes that you have completed the previous exercises and have the `Lab 2` canvas app open in the Power Apps studio. If you are not there currently, navigate to the app now.
 
-Power Apps provides an [App Checker tool](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/accessibility-checker) that can help you identify and resolve potential issues in our canvas apps. These issues can range from errors, through to accessibility concerns to performance improvements. Ensuring that you address accesibility issues is important, as it can help to ensure that all users can interact with your app effectively.
+Similar to a canvas app, custom pages provides an [App Checker tool](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/accessibility-checker) that can help you identify and resolve potential issues. These issues can range from errors, through to accessibility concerns to performance improvements. Ensuring that you address accesibility issues is important, as it will ensure that all users can interact with your apps and pages effectively.
 
-In this exercise, you will run the App Checker tool against the `Lab 2` canvas app, review the recommendations and then implement any necessary changes. We will also simulate an issue in the application, to see how the App Checker tool can be used to identify and resolve errors.
+In this exercise, you will run the App Checker tool against the `Lab 2` custom page, review the recommendations and then implement any necessary changes. We will also simulate an issue in the application, to see how the App Checker tool can be used to identify and resolve errors.
 
-1. In the `Lab 2` canvas app, navigate to the **Contact Form** screen in the tree view, select the **Get Weather** button and adjust the **OnSelect** property formula as follows:
+1. In the `Lab 2` custom page, navigate to the **Contact Form** screen in the tree view, select the **Get Weather** button and adjust the **OnSelect** property formula as follows:
 
     ```
     Set(varWeatherForecasts, GetWeatherForLocation.Run(Concatenate('Contact Gallery'.Selected.'Error Simulation', ",", 'Contact Gallery'.Selected.'Address 1: City', ",", 'Contact Gallery'.Selected.'Address 1: ZIP/Postal Code', ",", 'Contact Gallery'.Selected.'Address 1: Country/Region')))
@@ -573,7 +573,7 @@ In this exercise, you will run the App Checker tool against the `Lab 2` canvas a
     ![](Images/Lab2-UsingPowerFxInCustomPages/E5_2.png)
 
 > [!IMPORTANT]
-> The App Checker tool will always display a red dot if there are any formula errors anywhere in your application. However, just because a red dot isn't present, doesn't mean that there are no issues in your app. It's always a good idea to run the App Checker tool after creating the first version of your app, and then periodically throughout the development process.
+> The App Checker tool will always display a red dot if there are any formula errors present. However, just because a red dot isn't visible, doesn't mean that there are no issues. It's always a good idea to run the App Checker tool after creating the first version of your app or custom page, and then periodically throughout the development process.
 
 3. Click on the **App Checker** icon in the top right corner of the screen. The App Checker pane will open on the right-hand side of the screen:
 
@@ -616,7 +616,7 @@ In this exercise, you will run the App Checker tool against the `Lab 2` canvas a
     
     ![](Images/Lab2-UsingPowerFxInCustomPages/E5_11.png)
 
-11. Notice that there are 10 accessibility errors displayed - seven relating to missing accessibility labels and three relating to missing tab stops:
+11. Notice that there are several accessibility errors displayed, relating to missing accessibility labels and missing tab stops:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E5_12.png)
 
