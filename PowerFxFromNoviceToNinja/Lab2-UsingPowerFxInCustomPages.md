@@ -337,99 +337,116 @@ We now have a basic custom page that allows us to view Contact record data and d
 ## Exercise 3: Implement Power Fx Formulas
 
 > [!IMPORTANT]
-> This exercise assumes that you have completed the previous exercises and have the `Lab 2` canvas app open in the Power Apps studio. If you are not there currently, navigate to the app now.
+> This exercise assumes that you have completed the previous exercises and have the `Lab 2` custom page open. If you are not there currently, navigate to the app now.
 
-To ensure the app is functional, we need to implement the following using Power Fx:
+To ensure the page is functional, we need to implement the following using Power Fx:
 
 - When a user selects a Contact from the **Contact Gallery** gallery, they should be taken to the **Contact Form** screen, with the details of the selected Contact displayed.
 - When a user selects the **Back Arrow** control, they should be taken back to the **Contact Screen** screen.
 - The **Contact Form** should display a calculated field for the age of the Contact, derived from the **Birthday** field.
 
-Let's proceed to implement the functionality in the order described above, and then test the app to ensure it works as expected.
+Let's proceed to implement the functionality in the order described above, and then test the page to ensure it works as expected.
 
 1. Navigate to the **Contact Screen** screen in the tree view.
-2. Expand the **Contact Gallery** control to display a list of all it's subcontrols. There should be a control named **NextArrow1** or similar; select this control:
+2. Select the **Contact Gallery** control and then click on the pencil icon to edit the gallery template:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E3_1.png)
 
-3. With the **NextArrow1** control selected, ensure that the **OnSelect* property is selected in the formula dropdown and adjust the formula value as follows:
+3. The first row in the gallery will now be selected, allowing you to add additional controls. Click on **Insert** and add the **Right** icon:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_2.png)
+
+4. Rename the newly inserted control to **NextArrow1**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_3.png)
+
+5. With the **NextArrow1** control selected, ensure that the **OnSelect** property is selected in the formula dropdown and adjust the formula value as follows:
 
     ```
     Select(Parent); Navigate('Contact Form',ScreenTransition.Fade)
     ```
-    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_2.png)
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_4.png)
 
 > [!IMPORTANT]
 > It's also possible to use `Navigate('Contact Form')` as the formula here, omitting the screen transition argument. This argument is used to provide a visual effect when transitioning between screens, with a few options available. For further details, [review the Microsoft Learn article on the topic.](https://docs.microsoft.com/en-us/powerapps/maker/canvas-apps/functions/function-navigate).
 
-4. Navigate to the **Contact Form** screen in the tree view.
-5. Select the **Back Arrow** control, and with the **OnSelect** property selected in the formula dropdown, adjust the formula value as follows:
+6. Repeat the same steps in 5, but this time, select and configure the following properties as indicated in the table below. Once configured correctly, the app screen should resemble the screenshot below:
+
+    | Property | Formula |
+    | --- | --- |
+    | **X** | `1326` |
+    | **Y** | `8` |
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_5.png)
+
+7. Navigate to the **Contact Form** screen in the tree view.
+8. Select the **Back Arrow** control, and with the **OnSelect** property selected in the formula dropdown, adjust the formula value as follows:
 
     ```
     Back()
     ```
-    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_3.png)
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_6.png)
 
 > [!IMPORTANT]
 > `Back()` is a shorthand function that can be used to return the user to the previous screen they were on. In this context, it would also be valid to use `Navigate('Contact Screen')` to achieve the same result.
 
-6. With the **ContactForm** control selected, click on the **Edit fields** button in the properties pane:
-
-    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_4.png)
-
-7. On the **Fields** pane, click on the elipses (`...`) and then select **Add a custom card**:
-
-    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_5.png)
-
-8. A new custom data card called **DataCard1** will be added to the form:
-
-    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_6.png)
-
-9. Click on the text **Add an item from the insert pane** and then select **Label** from the **Insert** pane:
+9. With the **ContactForm** control selected, click on the **6 selected** button in the properties pane:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E3_7.png)
 
-10. A next text label control will be added to the custom data card. Rename this control to **Age Label**:
+10. On the **Fields** pane, click on the elipses (`...`) and then select **Add a custom card**:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E3_8.png)
 
-11. Select the **Age Label** control, and with the **Text** property selected in the formula dropdown, adjust the formula value as follows:
+11. A new custom data card called **DataCard1** will be added to the form:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_9.png)
+
+12. Click on the text **Add an item from the insert pane** and then select **Label** from the **Insert** pane:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_10.png)
+
+13. A text label control will be added to the custom data card. Rename this control to **Age Label**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_11.png)
+
+14. Select the **Age Label** control, and with the **Text** property selected in the formula dropdown, adjust the formula value as follows:
 
     ```
     "Contact Age: " & RoundDown((Today() - ThisItem.Birthday) / 365.25, 0)
     ```
 
-    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_9.png)
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_12.png)
 
-12. Repeat the same steps in 11, but this time, select and configure the following properties as indicated in the table below. Once configured correctly, the app screen should resemble the screenshot below:
+15. Repeat the same steps in 14, but this time, select and configure the following properties as indicated in the table below. Once configured correctly, the app screen should resemble the screenshot below:
 
     | Property | Formula |
     | --- | --- |
     | **FontWeight** | `FontWeight.Bold` |
     | **Height** | `130` |
-    | **Size** | `30` |
+    | **FontSize** | `30` |
     | **Width** | `255` |
     | **X** | `28` |
     | **Y** | `32` |
 
-    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_10.png)
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_13.png)
 
-13. Navigate back to the **Contact Screen** screen in the tree view.
+16. Navigate back to the **Contact Screen** screen in the tree view.
 
-14. Save all changes to the canvas app by clicking on the **Save** icon in the top right corner of the screen.
+17. Save all changes to the custom page by clicking on the **Save** icon in the top right corner of the screen.
 
-    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_11.png)
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_14.png)
 
-15. We will now proceed to test the app. Click on the **Play** icon in the top right corner of the screen to launch the app in preview mode:
+18. We will now proceed to test the page. Click on the **Play** icon in the top right corner of the screen to launch the page in preview mode:
 
-    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_12.png)
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E3_15.png)
 
-16. Validate that the app functions as follows. You can press the cross icon in the top right of the player to return back to the designer view at any time:
+19. Validate that the page functions as follows. You can press the cross icon in the top right of the player to return back to the designer view at any time:
     - When you select a Contact from the **Contact Gallery** gallery, you are taken to the **Contact Form** screen, with the details of the selected Contact displayed.
     - When you select the **Back Arrow** control, you are taken back to the **Contact Screen** screen.
     - The **Contact Form** displays a calculated field for the age of the Contact, derived from the **Birthday** field. Verify that the age is correct compared to the birthday.
 
-17. Leave the app open, as you will continue working with it in the next exercise.
+20. Leave the page open, as you will continue working with it in the next exercise.
 
 ## Exercise 4: Add a Power Automate cloud flow to retrieve weather information
 
