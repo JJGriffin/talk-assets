@@ -25,9 +25,6 @@ This lab will take approximately 30 minutes to complete.
 
 ## Exercise 1: Create a Canvas App
 
-> [!IMPORTANT]
-> When creating a canvas app, it is generally preferred to [create a solution](https://learn.microsoft.com/en-us/power-platform/alm/solution-concepts-alm) first, alongside a corresponding [solution publisher](https://learn.microsoft.com/en-us/power-platform/alm/solution-concepts-alm#solution-publisher), and to create the app from there. This will help to keep your apps organized and make it easier to deploy them out. For the purposes of this lab, we will skip these steps.
-
 1. Navigate to the [Power Apps Maker Portal](https://make.powerapps.com) and, if not already selected, navigate to the developer environment you created in Lab 0:
    
     ![](Images/Lab2-UsingPowerFxInCanvasApps/E1_1.png)

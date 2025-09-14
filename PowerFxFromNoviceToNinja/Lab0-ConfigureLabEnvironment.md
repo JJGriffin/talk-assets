@@ -16,6 +16,7 @@ In this lab, you will do the following:
 - Install Visual Studio Code
 - Install the Power Platform Tools extension
 - Configure an authentication profile to your Developer environment
+- Create a publisher and solution for our customizations, and set this as our default for the environment
 
 This lab will take approximately 15 minutes to complete.
 
@@ -132,5 +133,50 @@ An authentication profile allows us to connect to one, or several, Dataverse env
     ![](Images/Lab0-ConfigureLabEnvironment/E4_4.png)
 
 7. Leave Visual Studio Code and the terminal window open for the next lab exercise.
+
+## Exercise 5: Setup a Publisher and Solution as the environment default
+
+1. Open a new browser tab and navigate to the [Power Apps Maker Portal](https://make.powerapps.com). Sign in using the same credentials used to create the developer environment in Exercise 1, if prompted.
+2. In the **Power Apps Maker Portal**, click on **Solutions** from the left-hand navigation menu:
+   
+    ![](Images/Lab0-ConfigureLabEnvironment/E5_1.png)
+
+3. We will create a solution to store all of our future changes. Click on the **+ New solution** button in the top menu:
+
+    ![](Images/Lab0-ConfigureLabEnvironment/E5_2.png)
+
+4. In the **Create a solution** pane, enter the following details and then click on the **Create** button:
+    - **Display name**: `Wingtip Toys PP Solution`
+    - **Name**: `WingtipToysPPSolution`
+    - **Publisher**: Select **New publisher**, enter the following details and then press **Save**. Then, select the newly created publisher in the dropdown:
+        - **Display name**: `Wingtip Toys`
+        - **Name**: `WingtipToys`
+        - **Description**: `Publisher for Wingtip Toys Power Platform solutions`
+        - **Prefix**: `wtt`
+        - **Choice value prefix**: `96295`
+    - **Version**: `1.0.0.0`
+
+    ![](Images/Lab0-ConfigureLabEnvironment/E5_3.png)
+
+    ![](Images/Lab0-ConfigureLabEnvironment/E5_4.png)
+
+> [!IMPORTANT]
+> Before doing any development work involving Microsoft Dataverse, you should always plan to create a solution and publisher prefix. Doing so will ensure you can more easily transport your changes between different environments and so you can more easily identify your changes, based on the publisher prefix. We'll observe how this is used in later lab exercises.
+
+5. The newly created **Wingtip Toys PP Solution** solution should open. Click on the **Back to solutions** link in the top left-hand corner of the screen. You may need to expand the left-hand navigation menu to see this link:
+
+    ![](Images/Lab0-ConfigureLabEnvironment/E5_5.png)
+
+6. On the **Solutions** page, click on **Manage** under the **Current preferred solution** section:
+
+    ![](Images/Lab0-ConfigureLabEnvironment/E5_6.png)
+
+7. In the dialog, select **Wingtip Toys PP Solution (wtt)** and then click on **Apply**
+
+    ![](Images/Lab0-ConfigureLabEnvironment/E5_7.png)
+
+8. The **Wingtip Toys PP Solution** solution should now be set as the current preferred solution:
+
+    ![](Images/Lab0-ConfigureLabEnvironment/E5_8.png)
 
 **Congratulations, you've finished Lab 0** 🥳

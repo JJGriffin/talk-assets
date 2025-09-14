@@ -125,90 +125,45 @@ This lab will take approximately 30 minutes to complete.
    
     ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_1.png)
 
-3. We will create a solution to store all of our previous and future changes. Click on the **+ New solution** button in the top menu:
+3. On the **Solutions** page, click on the **Wingtip Toys PP Solution** solution created in Lab 0:
    
     ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_2.png)
 
-4. In the **Create a solution** pane, enter the following details and then click on the **Create** button:
-    - **Display name**: `Wingtip Toys PP Solution`
-    - **Name**: `WingtipToysPPSolution`
-    - **Publisher**: Select **New publisher**, enter the following details and then press **Save**. Then, select the newly created publisher in the dropdown:
-        - **Display name**: `Wingtip Toys`
-        - **Name**: `WingtipToys`
-        - **Description**: `Publisher for Wingtip Toys Power Platform solutions`
-        - **Prefix**: `wtt`
-        - **Choice value prefix**: `96295`
-    - **Version**: `1.0.0.0`
+6. Verify that the **Lab 2** app, the **GetWeatherForLocation** cloud flow and a corresponding connection reference you created earlier is present in the solution; this is because we configured a default solution for our environment in Lab 0:
 
     ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_3.png)
-
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_4.png)
-
-> [!IMPORTANT]
-> Before doing any development work involving Microsoft Dataverse, you should always plan to create a solution and publisher prefix. Doing so will ensure you can more easily transport your changes between different environments and so you can more easily identify your changes, based on the publisher prefix. We'll observe how this is used in the steps that follow.
-
-5. The newly created **Wingtip Toys PP Solution** solution should open. Click on **Add existing**, then select **App** and then **Canvas app**:
-   
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_5.png)
-
-6. On the **Add existing canvas apps** screen, select **Outside Dataverse** and then add the `Lab 2` app to the solution:
-
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_6.png)
-
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_7.png)
-
-> [!IMPORTANT]
-> If you receive a `'Lab 2' is locked by [User]` error, make sure you have closed the app. If you are still experiencing issues, try refreshing the browser.
-
-7. The **Lab 2** app should now be added and visible in the solution:
-
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_8.png)
-
-8. Click on **Add existing**, then select **Automation** and then **Cloud flow**:
-
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_9.png)
-
-9. On the **Add existing cloud flows** screen, select **Outside Dataverse** and then add the `GetWeatherForLocation` cloud flow to the solution:
-
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_10.png)
-
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_11.png)
-
-10. The `GetWeatherForLocation` cloud flow should now be added and visible in the solution, alongside a Connection Reference component for the MSN Weather connector:
-
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_12.png)
 
 > ![!IMPORTANT]
 > Connection references are used to ensure different connection profiles can be defined for our apps and automations as we move them between different environments. For example, if our app was using a SQL Server database and we have different servers/databases for our live and testing environments, the connection reference would enable us to define these seperately. For more information on connection references, [consult the Microsoft Learn site](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/create-connection-reference).
 
-11. We will now customize the Contact table to add the new field. Click on **Add existing** again and then select **Table**:
+7. We will now customize the Contact table to add the new field. Click on **Add existing** again and then select **Table**:
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_13.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_4.png)
 
-12. On the **Add existing tables** screen, scroll down to select the **Contact** table and then click on **Next**:
+8. On the **Add existing tables** screen, scroll down to select the **Contact** table and then click on **Next**:
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_14.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_5.png)
 
-13. On the **Selected tables** screen, click on **Add**. Do **NOT** tick the boxes for **Include all objects** or **Include table metadata**:
+9. On the **Selected tables** screen, click on **Add**. Do **NOT** tick the boxes for **Include all objects** or **Include table metadata**:
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_15.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_6.png)
 
 > [!IMPORTANT]
 > The **Include all objects** and **Include table metadata** options are used to include all fields and metadata for the table. In this scenario, to avoid solution "bloat" and because we are customizing a table that forms part of the Common Data Model, adding in the entire table could cause issues with deploying it out in future.
 
-14. The **Contact** table should now be added and visible in the solution:
+10. The **Contact** table should now be added and visible in the solution:
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_16.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_7.png)
 
-15. On the **Objects** list, expand **Tables**, then **Contact** and then click on **Columns**:
+11. On the **Objects** list, expand **Tables**, then **Contact** and then click on **Columns**:
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_17.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_8.png)
 
-16. On the **Columns** view, click on **+ New column**:
+12. On the **Columns** view, click on **+ New column**:
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_18.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_9.png)
 
-17. In the **New column** pane, enter the following details and then click on **Save**:
+13. In the **New column** pane, enter the following details and then click on **Save**:
 
 - **Display name**: `External Contact?`
 - **Description**: `Indicates the type of Contact`
@@ -224,22 +179,22 @@ This lab will take approximately 30 minutes to complete.
 - **Default choice**: Select `None`
 - **Schema name**: `wtt_contacttype`
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_19.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_10.png)
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_20.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_11.png)
 
 > [!IMPORTANT]
 > You may need to expand the **Advanced options** heading to view all configuration properties.
 
-18. The new column should now be visible in the **Columns** view:
+14. The new column should now be visible in the **Columns** view:
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_21.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_12.png)
 
-19. Click on **All** to return an overview of the solution:
+15. Click on **All** to return an overview of the solution:
 
-    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_22.png)
+    ![](Images/Lab3-AdvancedPowerFxDevelopmentInCanvasApps/E2_13.png)
 
-19. Leave the solution view and maker portal open, as we will continue from here in the next exercise.
+16. Leave the solution view and maker portal open, as we will continue from here in the next exercise.
 
 ## Exercise 3: Add External Contact and Filter to the Canvas App
 
