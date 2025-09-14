@@ -451,13 +451,13 @@ Let's proceed to implement the functionality in the order described above, and t
 ## Exercise 4: Add a Power Automate cloud flow to retrieve weather information
 
 > [!IMPORTANT]
-> This exercise assumes that you have completed the previous exercises and have the `Lab 2` canvas app open in the Power Apps studio. If you are not there currently, navigate to the app now.
+> This exercise assumes that you have completed the previous exercises and have the `Lab 2` custom page open in the Power Apps studio. If you are not there currently, navigate to the app now.
 
-To display weather information for the Contact's location, we will create a Power Automate cloud flow that will retrieve the weather information using [the MSN Weather connector](https://learn.microsoft.com/en-us/connectors/msnweather/). We will then call this flow from the canvas app using the button we added to the app in Exercise 3 to display the weather information.
+To display weather information for the Contact's location, we will create a Power Automate cloud flow that will retrieve the weather information using [the MSN Weather connector](https://learn.microsoft.com/en-us/connectors/msnweather/). We will then call this flow from the custom page using the button we added to the page in Exercise 3 to display the weather information.
 
 Note that it would be possible to add the MSN Weather connector directly into the app, and then use this to achieve the same outcome. We will use Power Automate in this instance to demonstrate the integration capabilities between different areas of the Power Platform, and so you can familliarize yourself with the approaches to follow when calling a cloud flow from a canvas app.
 
-1. In the `Lab 2` canvas app, navigate to the **Contact Screen** screen in the tree view.
+1. In the `Lab 2` custom page, navigate to the **Contact Screen** screen in the tree view.
 2. On the right hand-side of the screen, select the **Power Automate** icon
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E4_1.png)
@@ -512,7 +512,7 @@ Note that it would be possible to add the MSN Weather connector directly into th
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E4_15.png)
 
-14. Rename the new cloud flow to `GetWeatherForLocation`, by clicking on **Untitled** and renaming it accordingly:
+14. Rename the new cloud flow to `GetWeatherForLocation`, by clicking on **Untitled flow** and updating the input accordingly:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E4_16.png)
 
@@ -520,7 +520,7 @@ Note that it would be possible to add the MSN Weather connector directly into th
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E4_17.png)
 
-16. Close the flow designer by clicking on the **Close** icon in the top right corner of the screen. The flow will then be automatically added to the app and visible in the **Power Automate** pane:
+16. Close the flow designer by clicking on the **Close** icon in the top right corner of the screen. The flow will then be automatically added to the page and made visible in the **Power Automate** pane:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E4_18.png)
 
@@ -542,14 +542,14 @@ Note that it would be possible to add the MSN Weather connector directly into th
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E4_21.png)
 
-19. Save all changes to the canvas app by clicking on the **Save** icon in the top right corner of the screen.
-20. Click on the **Play** icon in the top right corner of the screen to launch the app in preview mode
+19. Save all changes to the custom page by clicking on the **Save** icon in the top right corner of the screen.
+20. Click on the **Play** icon in the top right corner of the screen to launch the page in preview mode
 21. Click on the **Get Weather** button to trigger the cloud flow. After a few moments, the weather information for the Contact's location should display in the **Weather Label** control:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E4_22.png)
 
 22. You can (optionally) experiment further by going back to the gallery screen, selecting different Contacts and then generating the unique forecast for each Contact's location.
-23. Leave the app open, as you will continue working with it in the next exercise.
+23. Leave the page open, as you will continue working with it in the next exercise.
 
 ## Exercise 5: Review and implement recommendations from the Power Apps App Checker
 
