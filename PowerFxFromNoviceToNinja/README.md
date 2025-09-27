@@ -11,5 +11,5 @@ All lab exercises are designed to be completed in order. Each lab builds on the 
 1. [Lab 0: Configure Lab Environment](./Lab0-ConfigureLabEnvironment.md)
 2. [Lab 1: Working with Basic Functions](./Lab1-WorkingWithBasicFunctions.md)
 3. [Lab 2: Using Power Fx in Custom Pages](./Lab2-UsingPowerFxInCustomPages.md)
-4. [Lab 3: Advanced Development with Power Fx and Canvas Apps](./Lab3-AdvancedPowerFxDevelopmentInCanvasApps.md)
-5. [Lab 4: Extending Microsoft Dataverse with Power Fx](./Lab4-ExtendingDataverseWithPowerFx.md)
+4. [Lab 3: Extending Microsoft Dataverse with Power Fx](./Lab3-ExtendingDataverseWithPowerFx.md)
+5. [Lab 4: Using Power Fx in Copilot Studio](./Lab4-UsingPowerFxInCopilotStudio.md)
