@@ -1,25 +1,25 @@
-# Lab 3 - Advanced Development with Power Fx and Canvas Apps
+# Lab 3 - Advanced Development with Power Fx and Custom Pages
 
-In this lab, you will extend the canvas apps created in Lab 2 with more advanced Power Fx formulas, explore how to more effectively work with data sources in Power Apps and see how to debug a canvas app using the Monitor.
+In this lab, you will extend the custom page created in Lab 2 with more advanced Power Fx formulas, explore how to more effectively work with data sources in Power Apps and see the impact of delegation and query limits on custom page performance.
 
 ## Scenario
 
-Having successfully created a basic canvas app that allows sales people to view Contact records, and extended the app to include a simple Power Fx formula to calculate the age of each Contact record and to display weather information relating to the Contact's location, Wingtip Toys have asked you to further enhance the app by implementing the following requirements:
+Having successfully created a basic custom page that allows sales people to view Contact records, and extended the page to include a simple Power Fx formula to calculate the age of each Contact record and to display weather information relating to the Contact's location, Wingtip Toys have asked you to further enhance the page by implementing the following requirements:
 
 - Allow for users to edit Contacts that have been selected from the **Contact Gallery**.
 - Write information back to the Contact **Description** field when a Contact is updated. This field should be read-only and not editable by the user.
 - Filter the existing Contact screen to only display Contacts that are external. A new field needs to be added to the Contact table, to support this requirement.
 
-Wingtip Toys have also asked you to explore changing the existing data source of the canvas apps to a different 3rd party system. Based on your research, you have determined that this may lead to unintended side effects as a result of delegation and query limits. You therefore plan to experiment further so you can better understand the behaviours involved with delegation and the impact of using [Collections](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/working-with-data-sources#collections). Your plan is to use the Monitor tool to assist you in this diagnosis.
+Wingtip Toys have also asked you to explore changing the existing data source of the canvas apps to a different 3rd party system. Based on your research, you have determined that this may lead to unintended side effects as a result of delegation and query limits. You therefore plan to experiment further so you can better understand the behaviours involved with delegation and the impact of using [Collections](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/working-with-data-sources#collections).
 
 ## Instructions
 
 In this lab, you will do the following:
 
-- Extend the existing canvas app to allow the sellers to update existing Contact records in Dataverse, using the `Patch()` function.
+- Extend the existing custom page to allow the sellers to update existing Contact records in Dataverse, using the `Patch()` function.
 - Add a new field to the Contact table in Dataverse to support the filtering of external Contacts.
 - Implement a Power Fx formula to filter the existing Contact screen to only display Contacts that are external.
-- Use the Monitor to diagnose and resolve performance issues with the app.
+- Import additional data and experiment with the app to understand the impact of delegation and query limits.
 
 This lab will take approximately 30 minutes to complete.
 

@@ -17,8 +17,12 @@ In this lab, you will do the following:
 - Add several Power Fx formulas for navigation and to calculate the age of each Contact record.
 - Add a Power Automate cloud flow to retrieve the weather information for the Contact's location.
 - Review and implement recommendations from the Power Apps app checker.
+- Extend the existing custom page to allow the sellers to update existing Contact records in Dataverse, using the `Patch()` function.
+- Add a new field to the Contact table in Dataverse to support the filtering of external Contacts.
+- Implement a Power Fx formula to filter the existing Contact screen to only display Contacts that are external.
+- Import additional data and experiment with the app to understand the impact of delegation and query limits.
 
-This lab will take approximately 30 minutes to complete.
+This lab will take approximately 60 minutes to complete.
 
 > [!IMPORTANT]
 > Ensure that all steps have been completed in Lab 0 before proceeding with this lab.
@@ -656,11 +660,408 @@ In this exercise, you will run the App Checker tool against the `Lab 2` custom p
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E5_20.png)
 
-19. Save all changes to the canvas app by clicking on the **Save** icon in the top right corner of the screen.
+19. Save all changes to the custom page by clicking on the **Save** icon in the top right corner of the screen.
 20. Click on the **Publish** icon in the top right corner of the screen to publish the app. In the **Publish** dialog, click on the **Publish this version** button:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E5_21.png)
 
 21. The app will automatically publish itself in the background. You may now close the app by clicking on the **Back** icon in the top left of the screen.
+22. Leave the custom page designer open if you plan to continue to the next exercise.
+
+## Exercise 6: Extend the Custom Page
+
+1. You should still have the `Lab 2` custom page open in the canvas designer. If not, navigate there now and ensure the **Contact Form** screen is selected in the tree view.
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_1.png)
+
+2. Click on the **Insert** tab in the top menu, and then search for and select the **Save** icon to add the control to the screen:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_2.png)
+
+3. Rename the **Save** button to **Save Contact** by double clicking it in the **Tree view** menu:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_3.png)
+
+4. With the **Save Contact** icon selected and using the dropdown menu, configure the properties for the control as indicated below:
+
+    | Property | Formula |
+    | --- | --- |
+    | **Height** | `140` |
+    | **Width** | `124` |
+    | **X** | `0` |
+    | **Y** | `239` |
+
+5. After configuring the **Save Contact** icon, the screen should resemble the below screenshot:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_4.png)
+
+6. Configure the **DisplayMode** property of the **Save Contact** icon by using the following formula. This will ensure the icon can only be selected if a change has been made to the form:
+
+    ```
+    If(ContactForm.Unsaved = true, DisplayMode.Edit, DisplayMode.Disabled)
+    ```
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_5.png)
+
+7. Configure the **OnSelect** property of the **Save Contact** icon by using the following formula. This formula will update the contact with the latest changes from the form, and add a custom description value:
+
+    ```
+    Patch(Contacts, 'Contact Gallery'.Selected, ContactForm.Updates, {Description: Concatenate("Last updated by ", User().FullName)})
+    ```
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_6.png)
+
+> [!IMPORTANT]
+> The `Patch()` function can be used interchangeably to either create or update records in a data source. It would also be possible to use the `SubmitForm()` function to achieve a similar resullt, but in this scenario, we want to update an additional field that is not currently part of the form. We will add this field in a read only state shortly.
+
+8. Click on the **Contact Form** screen in the left-hand **Tree view** menu to open the screen, and then click on the **Edit fields** option in the properties pane:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_7.png)
+
+9. Click on the **Add field** button, select the **Description** field from the list of fields and then click on **Add** to add it to the form. You can use the search box to find the field more easily:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_8.png)
+
+10. On the list of fields, expand the **Description** field if not already expanded and change the **Control type** to **View text**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_9.png)
+
+11. Close the fields pane by selecting the cross icon in the top right corner of the pane:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_10.png)
+
+12. The screen should now resemble the below screenshot - the **Save icon** should be disabled and the **Description** data card should no longer have a text input field displayed:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_11.png)
+
+13. Test the application by clicking on the **Play** icon in the top right corner of the screen. Make a change to any of the Contact fields and confirm that that the **Save Contact** icon is enabled. Then, click on the **Save Contact** icon. The changes should be saved and the description field should be updated with the text `Last updated by [Your Name]`. The **Save Contact** icon should also be disabled again:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_12.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E6_13.png)
+
+> [!IMPORTANT]
+> The `Patch()` function can provide additional versaility, particularly when there is a need to populate additional hidden fields based on a more complex calculation. However, for most scenarios, remember that the `SubmitForm()` function is the recommended approach for saving data in a form.
+>
+> In this scenario, we wrote information regarding who last modified the record to the **Description** field. However, keep in mind that Dataverse does have a built in **Modified By** field that can be used to track this information. This field is automatically updated by Dataverse when a record is modified, and may be a more appropriate choice for a production application.
+
+16. Exit the app player by clicking on the **Close** icon in the top right corner of the screen.
+17. Click on the **Save** icon to save all changes to the custom page.
+18. Click on the **Back** button to exit the canvas designer. We will return to the app later in the lab.
+
+## Exercise 7: Customize the Contact Table
+
+> [!IMPORTANT]
+> This exercise assumes that you have completed the previous exercises. Make sure you have completed all steps described above, including closing the canvas app designer.
+
+1. Open a new browser tab and navigate to the [Power Apps Maker Portal](https://make.powerapps.com).
+2. In the **Power Apps Maker Portal**, click on **Solutions** from the left-hand navigation menu:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_1.png)
+
+3. On the **Solutions** page, click on the **Wingtip Toys PP Solution** solution created in Lab 0:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_2.png)
+
+4. Verify that the **Lab 2** custom page, the **GetWeatherForLocation** cloud flow and a corresponding connection reference you created earlier is present in the solution; this is because we configured a default solution for our environment in Lab 0:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_3.png)
+
+> ![!IMPORTANT]
+> Connection references are used to ensure different connection profiles can be defined for our apps and automations as we move them between different environments. For example, if our app was using a SQL Server database and we have different servers/databases for our live and testing environments, the connection reference would enable us to define these seperately. For more information on connection references, [consult the Microsoft Learn site](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/create-connection-reference).
+
+5. We will now customize the Contact table to add the new field. Click on **Add existing** again and then select **Table**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_4.png)
+
+6. On the **Add existing tables** screen, scroll down to select the **Contact** table and then click on **Next**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_5.png)
+
+7. On the **Selected tables** screen, click on **Add**. Do **NOT** tick the boxes for **Include all objects** or **Include table metadata**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_6.png)
+
+> [!IMPORTANT]
+> The **Include all objects** and **Include table metadata** options are used to include all fields and metadata for the table. In this scenario, to avoid solution "bloat" and because we are customizing a table that forms part of the Common Data Model, adding in the entire table could cause issues with deploying it out in future.
+
+8. The **Contact** table should now be added and visible in the solution:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_7.png)
+
+9. On the **Objects** list, expand **Tables**, then **Contact** and then click on **Columns**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_8.png)
+
+10. On the **Columns** view, click on **+ New column**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_9.png)
+
+11. In the **New column** pane, enter the following details and then click on **Save**:
+
+- **Display name**: `External Contact?`
+- **Description**: `Indicates the type of Contact`
+- **Data type**: Select `Choice` -> `Choice`
+- **Sync with global choice?**: Select `No`
+    - **Choices**: Add the following choices:
+        - First Choice:
+            - **Label**: `Internal`
+            - **Value**: `962950000`
+        - Second Choice:
+            - **Label**: `External`
+            - **Value**: `962950001`
+- **Default choice**: Select `None`
+- **Schema name**: `wtt_contacttype`
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_10.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_11.png)
+
+> [!IMPORTANT]
+> You may need to expand the **Advanced options** heading to view all configuration properties.
+
+12. The new column should now be visible in the **Columns** view:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_12.png)
+
+13. Click on **All** to return an overview of the solution:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E7_13.png)
+
+14. Leave the solution view and maker portal open, as we will continue from here in the next exercise.
+
+## Exercise 8: Add External Contact and Filter to the Canvas App
+
+> [!IMPORTANT]
+> Ensure that all steps in Exercise 7 have been completed before proceeding.
+
+1. You should still be in the solution view for the **Wingtip Toys PP Solution** created in the previous exercise; if not, navigate there now.
+2. Click on the `Lab 2` custom page to open it in the designer:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_1.png)
+
+3. In the **Tree view**, expand the **Contact Form** screen and then select the **ContactForm** control:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_2.png)
+
+4. In the properties pane, click on **8 selected** next to the **Fields** label:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_3.png)
+
+5. In the **Fields** pane, click on **Add field** and then select the **External Contact?** field from the list of fields. You can use the search box to more easily locate it. Once selected, click on **Add** to add the field to the form:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_4.png)
+
+6. Click on the cross icon to close the **Fields** pane. The **External Contact?** field should now be visible in the form, as a dropdown control:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_5.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_6.png)
+
+7. Click on the **Contact Screen** screen in the **Tree view** and then play the custom page:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_7.png)
+
+8. Navigate into the first Contact record and then populate the **External Contact?** field with the value `External`. Save the record and then navigate back to the Contact screen:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_8.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_9.png)
+
+9. Repeat step 8 for all remaining Contacts in the gallery. For each Contact, alternate between the `Internal` and `External` values for the **External Contact?** field, ensuring an even split between the two values:
+10. Exit the player by clicking on the **Close** icon in the top right corner of the screen.
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_10.png)
+
+11. Select the **Contact Gallery** gallery in the **Tree view**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_11.png)
+
+12. Adjust the properties of the gallery as indicated in the table below. The gallery should resemble the screenshot below if configured correctly:
+
+    | Property | Formula |
+    | --- | --- |
+    | **Width** | `1150` |
+    | **X** | `216` |
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_12.png)
+
+13. Click on the **+ Insert** button in the top menu, and then select **Radio**. You may need to expand the **Input** heading to locate the control:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_13.png)
+
+14. Rename the **Radio** control to **Contact Filter** by double clicking it in the **Tree view** menu:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_14.png)
+
+15. Adjust the properties of the **Contact Filter** control as indicated in the table below. The screen should resemble the screenshot below if configured correctly:
+
+    | Property | Formula |
+    | --- | --- |
+    | **Height** | `154` |
+    | **Items** | `["All", "Internal", "External"]` |
+    | **Width** | `160` |
+    | **X** | `40` |
+    | **Y** | `185` |
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_15.png)
+
+16. Select the **Contact Gallery** control and adjust the **Items** property to filter the gallery based on the selected value in the **Contact Filter** control. Use the following formula:
+
+    ```
+    Switch('Contact Filter'.SelectedText.Value, 
+        "All", Contacts,
+        "Internal", Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal),
+        "External", Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External)
+    )
+    ```
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_16.png)
+
+15. Press the **Play** icon in the top right corner of the screen to test the custom page. Select the different options from the **Contact Filter** control and confirm that the list of Contacts in the gallery updates accordingly. Close the player when you are finished testing:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_17.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_18.png)
+
+16. Currently, the gallery is returning the data in an inconsistent order. Adjust the formula for the **Items** property on the **Contact Gallery** to include the `Sort()` function. Use the following formula:
+
+    ```
+    Switch('Contact Filter'.SelectedText.Value, 
+        "All", Sort(Contacts, 'Full Name', SortOrder.Ascending),
+        "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
+        "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
+    )
+    ```
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_19.png)
+
+17. Press the **Play** icon in the top right corner of the screen to test the custom page. Select the different options from the **Contact Filter** control and confirm that the list of Contacts is now sorted in ascending order. Close the player when you are finished testing:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E8_20.png)
+
+18. Click on the **Save** icon to save all changes to the custom page.
+19. Click on the **Back** button to exit the canvas designer.
+
+## Exercise 9: Diagnosing and Resolving Performance Issues
+
+As your custom page is deployed and used over time, performance issues may arise. For these scenarios, the [Monitor tool](https://learn.microsoft.com/en-us/power-apps/maker/monitor-overview) provides us with the capability to perform a "deep view" into our app, thereby allowing us to understand all the key activities that occur. From there, bottlenecks can be identified and resolved. In order to use Monitor, you first need to integrate your custom page into your model-driven app. From there, the Monitor tool can be launched from the model-driven app, and it will capture all the relevant information from the custom page.
+
+For this exercise, we will skip working with the Monitor; instead, we will simulate a scenario involving [delegation and query limits](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/delegation-overview) by importing some additional Contact data into our Dataverse environment. We will see how this behaviour affects our app at runtime.
+
+1. Download the [ContactData.csv](/PowerFxFromNoviceToNinja/Resources/Lab2-UsingPowerFxInCustomPages/Contacts.csv) file to your local machine.
+2. Open a new browser tab and navigate to the [Power Apps Maker Portal](https://make.powerapps.com).
+3. In the **Power Apps Maker Portal**, click on **Tables** from the left-hand navigation menu and then click on **Import** -> **Import Data**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_1.png)
+
+4. In the **Choose data source** page, drag and drop or browse and select the **ContactData.csv** file you downloaded in step 1. Once selected, click on **Next**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_2.png)
+
+5. On the **Connect to data source** page, click on **Sign in**. If prompted, sign in with your work or school account. Once you've signed in, click on **Next**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_3.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_4.png)
+
+6. On the **Preview file data** screen, review the data that will be imported and then click on **Next**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_5.png)
+
+7. On the Power Query editor page, click on the icon next to **birthdate** and change the data type to **Date**. If prompted with a **Change column type** dialog, click on **Add new step**. Once done, click on **Next**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_6.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_7.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_8.png)
+
+8. On the **Map tables** page, populate the details as follows and then select **Next**:
+    - **Load settings**: Select **Load to existing table**
+    - **Destination table**: Select **Contact**
+    - **Column mapping**: Map the **Source column**'s and **Destination column**'s as indicated below:
+        - birthdate -> BirthDate
+        - emailaddress1 -> EMailAddress1
+        - firstname -> FirstName
+        - lastname -> LastName
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_9.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_10.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_11.png)
+
+9. On the **Refresh settings** page, ensure the **Refresh manually** option is selected and then click on **Publish**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_12.png)
+
+10. You will be taken back to the Maker portal. Click on **More** and then select **Dataflows**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_13.png)
+
+11. On the **Dataflows** page, you will see a single dataflow, which will display **In progress** under the **Next refresh** heading. Wait a few minutes, refresh the page and confirm that the refresh has completed successfully:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_14.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_15.png)
+
+12. Navigate to the **Wingtip Toys PP Solution** solution and then click on the `Lab 2` custom page to open it in the designer:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_16.png)
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_17.png)
+
+13. With the **Contact Screen** selected, click on the **Play** icon in the top right corner of the screen to test the application. With the **All** option selected, you should see the new Contact records in the gallery:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_18.png)
+
+Now that we have imported additional data into our Dataverse environment, we can simulate a scenario involving delegation. By default, the `Filter()` and `Sort()` function support delegation when connecting to Dataverse, which means that all records will be returned from the data source. This is because the connector can apply the appropriate filtering and sorting rules at the API level.
+
+However, there are scenarios where delegation is not supported, even with the Dataverse connector. In these scenarios, by default, only the first 500 records will be returned from the data source. Let's adjust the app to reduce the number of records returned from the data source when queries can't be delegated, and then adjust the gallery formula so that delegation is no longer supported.
+
+1. In the app designer view, click on the **Settings** icon in the bottom left of the screen:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_19.png)
+
+2. On the **General** tab, scroll down, change the **Data row limit** value to `5` and click on **Close**:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_20.png)
+
+3. Back on the **Contact Screen**, observe that the gallery is still displaying all records from the Contact table. Click on the **Play** icon in the top right corner of the screen to test the application. With the **Internal** option selected, you should see at least 7 records:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_21.png)
+
+4. Adjust the formula of the **Items** property on the **Contact Gallery** control to introduce a scenario where delegation will no longer be supported:
+    
+    ```
+    Switch('Contact Filter'.SelectedText.Value, 
+        "All", Sort(Contacts, 'Full Name', SortOrder.Ascending),
+        "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
+        "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
+    )
+    ```
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_22.png)
+
+5. Notice now that the gallery control has a warning icon displayed and when you press **Play** to test the application, only 2 internal Contact records are now returned. Because we adjusted the delegation settings of the application, we can more clearly see how delegation issues can impact our application:
+
+    ![](Images/Lab2-UsingPowerFxInCustomPages/E9_23.png)
+
+> [!IMPORTANT]
+> For other Dataverse data types, `IsBlank()` is usually delegable. Choice columns are the only type that are not supported. For more information on what is and isn't supported for delegation with the Dataverse connector, [consult the Microsoft Learn site](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/connections/connection-common-data-service#power-apps-delegable-functions-and-operations-for-dataverse).
+
+6. Fix the delegation issue by reverting the formula in the gallery **Items** property:
+
+    ```
+    Switch('Contact Filter'.SelectedText.Value, 
+        "All", Sort(Contacts, 'Full Name', SortOrder.Ascending),
+        "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
+        "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
+    )
+    ```
+7. Notice that the delegation warnings disappear and the expected number of Contact records are returned again.
+
+This part of the exercise is designed to make you aware of the practical implications of delegation and how it can impact your app, especially in relation to what data is returned for an end user. The Dataverse connector, along with the [SQL Server](https://learn.microsoft.com/en-us/connectors/sql/#power-apps-functions-and-operations-delegable-to-sql-server), [SharePoint](https://learn.microsoft.com/en-us/connectors/sharepointonline/#power-apps-delegable-functions-and-operations-for-sharepoint) and [Salesforce](https://learn.microsoft.com/en-us/connectors/salesforce/#power-apps-delegable-functions-and-operations-for-salesforce) connectors support the widest range of delegation options, but other data sources may vary. You should always ensure you check the documentation for any connector you use in your app, to understand what is and isn't supported with delegation.
 
 **Congratulations, you've finished Lab 2** 🥳
