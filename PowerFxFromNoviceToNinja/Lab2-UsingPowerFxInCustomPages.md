@@ -745,9 +745,9 @@ In this exercise, you will run the App Checker tool against the `Lab 2` custom p
 >
 > In this scenario, we wrote information regarding who last modified the record to the **Description** field. However, keep in mind that Dataverse does have a built in **Modified By** field that can be used to track this information. This field is automatically updated by Dataverse when a record is modified, and may be a more appropriate choice for a production application.
 
-16. Exit the app player by clicking on the **Close** icon in the top right corner of the screen.
-17. Click on the **Save** icon to save all changes to the custom page.
-18. Click on the **Back** button to exit the canvas designer. We will return to the app later in the lab.
+14. Exit the app player by clicking on the **Close** icon in the top right corner of the screen.
+15. Click on the **Save** icon to save all changes to the custom page.
+16. Click on the **Back** button to exit the canvas designer. We will return to the app later in the lab.
 
 ## Exercise 7: Customize the Contact Table
 
@@ -767,7 +767,7 @@ In this exercise, you will run the App Checker tool against the `Lab 2` custom p
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E7_3.png)
 
-> ![!IMPORTANT]
+> [!IMPORTANT]
 > Connection references are used to ensure different connection profiles can be defined for our apps and automations as we move them between different environments. For example, if our app was using a SQL Server database and we have different servers/databases for our live and testing environments, the connection reference would enable us to define these seperately. For more information on connection references, [consult the Microsoft Learn site](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/create-connection-reference).
 
 5. We will now customize the Contact table to add the new field. Click on **Add existing** again and then select **Table**:
@@ -886,7 +886,7 @@ In this exercise, you will run the App Checker tool against the `Lab 2` custom p
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E8_12.png)
 
-13. Click on the **+ Insert** button in the top menu, and then select **Radio**. You may need to expand the **Input** heading to locate the control:
+13. Click on the **+ Insert** button in the top menu, and then select **Radio group**. You may need to expand the **Input** heading to locate the control:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E8_13.png)
 
@@ -909,7 +909,7 @@ In this exercise, you will run the App Checker tool against the `Lab 2` custom p
 16. Select the **Contact Gallery** control and adjust the **Items** property to filter the gallery based on the selected value in the **Contact Filter** control. Use the following formula:
 
     ```
-    Switch('Contact Filter'.SelectedText.Value, 
+    Switch('Contact Filter'.Selected.Value, 
         "All", Contacts,
         "Internal", Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal),
         "External", Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External)
@@ -927,7 +927,7 @@ In this exercise, you will run the App Checker tool against the `Lab 2` custom p
 16. Currently, the gallery is returning the data in an inconsistent order. Adjust the formula for the **Items** property on the **Contact Gallery** to include the `Sort()` function. Use the following formula:
 
     ```
-    Switch('Contact Filter'.SelectedText.Value, 
+    Switch('Contact Filter'.Selected.Value, 
         "All", Sort(Contacts, 'Full Name', SortOrder.Ascending),
         "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
         "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
