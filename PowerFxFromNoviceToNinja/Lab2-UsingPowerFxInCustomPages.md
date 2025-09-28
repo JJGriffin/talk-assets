@@ -1020,7 +1020,7 @@ Now that we have imported additional data into our Dataverse environment, we can
 
 However, there are scenarios where delegation is not supported, even with the Dataverse connector. In these scenarios, by default, only the first 500 records will be returned from the data source. Let's adjust the app to reduce the number of records returned from the data source when queries can't be delegated, and then adjust the gallery formula so that delegation is no longer supported.
 
-1. In the app designer view, click on the **Settings** icon in the bottom left of the screen:
+1. In the canvas designer view, click on the **Settings** icon in the bottom left of the screen:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E9_19.png)
 
@@ -1028,7 +1028,7 @@ However, there are scenarios where delegation is not supported, even with the Da
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E9_20.png)
 
-3. Back on the **Contact Screen**, observe that the gallery is still displaying all records from the Contact table. Click on the **Play** icon in the top right corner of the screen to test the application. With the **Internal** option selected, you should see at least 7 records:
+3. Back on the **Contact Screen**, observe that the gallery is still displaying all records from the Contact table. Click on the **Play** icon in the top right corner of the screen to test the custom page. With the **Internal** option selected, you should see at least 7 records:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E9_21.png)
 
@@ -1044,7 +1044,7 @@ However, there are scenarios where delegation is not supported, even with the Da
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E9_22.png)
 
-5. Notice now that the gallery control has a warning icon displayed and when you press **Play** to test the application, only 2 internal Contact records are now returned. Because we adjusted the delegation settings of the application, we can more clearly see how delegation issues can impact our application:
+5. Notice now that the gallery control has a warning icon displayed and when you press **Play** to test the custom page, only 2 internal Contact records are now returned. Because we adjusted the delegation settings of the custom page, we can more clearly see how delegation issues can impact the data that is returned:
 
     ![](Images/Lab2-UsingPowerFxInCustomPages/E9_23.png)
 

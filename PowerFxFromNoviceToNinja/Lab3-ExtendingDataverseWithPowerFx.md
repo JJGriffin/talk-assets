@@ -84,6 +84,9 @@ This lab will take approximately 45 minutes to complete.
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E1_10.png)
 
+> [!TIP]
+> You might need to expand the **Properties** pane by clicking on the arrow icon in the top right-hand corner of the screen. 
+
 10. Save your changes by clicking on the **Save** button in the top right-hand corner of the screen:
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E1_11.png)
@@ -118,7 +121,7 @@ This lab will take approximately 45 minutes to complete.
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E1_18.png)
 
-    - The form currently has three tabs displayed - **Summary**, **Details** and **Related**. We can add additional tabs and sections to the form to display further information or to group information together. In Exercise 5, we will add a new tab to this form to display the canvas app we created in Lab 2 and 3.
+    - The form currently has three tabs displayed - **Summary**, **Details** and **Related**. We can add additional tabs and sections to the form to display further information or to group information together.
 
 16. Press the **Back** button to return back to the **My Active Accounts** view:
 
@@ -131,7 +134,7 @@ This lab will take approximately 45 minutes to complete.
 ## Exercise 2: Implement a Custom Command in Dataverse using Power Fx
 
 > [!IMPORTANT]
-> This exercise assumes that you have completed the previous exercise and that you still have the model-driven app designer open for the **Account Management** app. If you are not there, proceed there now.
+> This exercise assumes that you have completed the previous exercise and that you still have the model-driven app designer open for the **Account Management** app. If you are not there, proceed to open it now.
 
 1. In the model-driven app designer, under the **Navigation** heading, click on the elipses (...) next to the **Accounts** table and then select **Edit command bar** -> **Edit in new tab**:
 
@@ -335,10 +338,18 @@ This lab will take approximately 45 minutes to complete.
 
 > [!IMPORTANT]
 > The Dataverse accelerator provides a seperate interface for customers to trial and experiment with preview features, such as low-code plug-ins. While this functionality is in preview, we must always use the accelerator to create and manage low-code plug-ins. For more information on the accelerator app, [refer to the Microsoft Learn site](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/dataverse-accelerator/dataverse-accelerator).
+>
+> If you cannot find the **Dataverse Accelerator App** in the **Apps** list, you may need to install it from the [Power Platform Admin Center](https://aka.ms/ppac). To do this, navigate to the **Environments** area, select your developer environment and then click on **Resources** -> **Dynamics 365 apps**. Click on **Install app**, locate the **Dataverse Accelerator** app in the list and then click on the **Install** button. This operation can take several minutes to complete. Once installed, return to the Power Apps maker portal and you should now see the app in the list.
 
-3. In the **Dataverse Accelerator App**, click on **+ New plug-in** -> **Automated plug-in** in the ribbon:
+![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_3.png)
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_3.png)
+![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_4.png)
+
+![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_5.png)
+
+3. In the **Dataverse Accelerator App**, click on **Create automated plug-in**:
+
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_6.png)
 
 4. On the **New** form, populate the form as indicated below. Note that you will need to expand the **Advanced options** heading to see all fields:
         - **Display Name**: `Validate and Format Contact Telephone Number On Create`
@@ -347,7 +358,7 @@ This lab will take approximately 45 minutes to complete.
         - **When should this run**: Select **Post-Operation**.
         - **Solution**: Select the **Wingtip Toys PP Solution** solution.
     
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_4.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_7.png)
 
 > [!IMPORTANT]
 > If the **When should this run** options are not visible, try refreshing the page.
@@ -377,20 +388,20 @@ This lab will take approximately 45 minutes to complete.
     )
     ```
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_5.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_8.png)
 
 6. Press **Save** to create the plug-in:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_6.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_9.png)
 
 > [!IMPORTANT]
 > When saving the plug-in, you may receive the following error message: `An unexpected error occurred while creating FxExpression: It is invalid to create component fxexpression with the same export key value(s) as an existing component. Please change the key. The current value(s) are uniquename: wtt_ValidateandFormatContactTelephoneNumber`. Provided that there is an additional message stating `Plug-in successfully saved`, you can disregard this error.
 
-![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_7.png)
+![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_10.png)
 
 7. Click on **Back** to return to the previous page:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_8.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_11.png)
 
 8. We now need to create the plug-in that will trigger whenever a Contact is updated. Click on **+ New plug-in** -> **Automated plug-in** again in the ribbon.
 
@@ -401,7 +412,7 @@ This lab will take approximately 45 minutes to complete.
         - **When should this run**: Select **Post-Operation**.
         - **Solution**: Select the **Wingtip Toys PP Solution** solution.
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_9.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_12.png)
 
 > [!IMPORTANT]
 > If the **When should this run** options are not visible, try refreshing the page.
@@ -431,7 +442,7 @@ This lab will take approximately 45 minutes to complete.
     )
     ```
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_10.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_13.png)
 
 11. Press **Save** to create the plug-in.
 
@@ -439,17 +450,17 @@ This lab will take approximately 45 minutes to complete.
 
 13. Click on the **Automated** button and verify that the two plug-ins we created are listed:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_11.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_14.png)
 
 14. Once created, low-code plug-ins will be registered and begin to execute when the conditions we've defined are met. We can now test these plug-ins in the **Account Management** app. Click on the **Dataverse Accelerator App** label on the top of the screen and the select the **Account Management** app in the **App** dialog that appears:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_12.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_15.png)
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_13.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_16.png)
 
 15. In the **Account Management** app, click on **Contacts** and then select **+ New** to create a new Contact:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_14.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_17.png)
 
 To confirm the plug-in works on Create, we need to test the following scenarios:
 - **Scenario 1**: Enter a telephone number in a valid format (e.g. `(123) 456-7890`). The record should save successfully with no error and retaining the correctly formatted telephone number.
@@ -462,22 +473,22 @@ To confirm the plug-in works on Create, we need to test the following scenarios:
     - **Last Name**: `Doe`
     - **Business Phone**: `(123) 456-7890`
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_15.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_18.png)
 
 17. The record should save successfully and the **Business Phone** field should retain the value we entered. Press **New** on the ribbon to test the next scenario:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_16.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_19.png)
 
 18. Proceed to test **Scenario 2** by populating the Contact form with the following values and then pressing **Save**:
     - **First Name**: `John`
     - **Last Name**: `Doe`
     - **Business Phone**: `1234567890`
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_17.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_20.png)
 
 19. The record should save successfully and the **Business Phone** field should be formatted correctly:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_18.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_21.png)
 
 20. Press **New** on the ribbon to test the next scenario. Populate the Contact form with the following values and then press **Save**:
     - **First Name**: `Joe`
@@ -486,15 +497,15 @@ To confirm the plug-in works on Create, we need to test the following scenarios:
 
 21. This time you, you should receive an error message, confirming that the plug-in validation is working correctly. Press **OK** to dismiss the dialog. Observe that we are prevented from saving the record, due to the error:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_19.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_22.png)
 
 22. On the **New Contact** form, replace the **Business Phone** value with `123456789a` and then press **Save**. Confirm that again you receive an error message and are prevented from saving the record. Press **OK** again to dismiss the dialog:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_20.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_23.png)
 
 23. Click the back arrow on the browser and, when prompted about unsaved changes, click **Discard changes**:
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_21.png)
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E4_24.png)
 
 24. You should now be on the **John Doe** Contact record created in step 18. Proceed to test the same scenarios in steps 16-22 for the **Updated** plug-in by supplying a mixture of valid and invalid values. Keep testing until you are satisified the plug-in is working as expected.
 
@@ -513,200 +524,41 @@ To confirm the plug-in works on Create, we need to test the following scenarios:
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_2.png)
 
-3. To embed the canvas app into the model-driven app, we require some details regarding the canvas app. On the **All** Solution view, locate the **Lab 2** canvas app and note down the **Name** value of the app. It should resemble the following:   `wtt_lab2jg_eba0`
+3. In the solution view, select **Apps** and then select the **Wingtip Toys Account Management** model-driven app to open the app designer:
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_3.png)
 
-4. Click on the vertical elipses next to the **Lab 2** canvas app and click on **Details**:
+4. Under **Pages**, click on **+ New** and then select **Custom page**:
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_4.png)
 
-5. On the details page for the **Lab 2** app, locate the **Web link** URL. Copy the URL to your clipboard and paste it onto an empty Notepad file:
+5. In the **Add existing custom page** dialog, select the **Lab 2** custom page and then click on **Add**. Make sure the **Show in navigation** option is ticked:
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_5.png)
 
-6. When pasted into notepad, the URL should resemble the example below::
-
-    ```
-    https://apps.powerapps.com/play/e/f0d69e0b-e5fa-45b1-8bf4-876c02240e63/a/1e4ebf48-5d5b-4e27-986a-93c33209f8e6?tenantId=c71a2ce3-a6e7-4d8a-88e2-d9b05fcb73f6&sourcetime=1725902007787
-    ```
-    Extract from the URL the Globally Unique Identifier (GUID) of the application, which directly follows the `/a/` portion of the URL, and ends after the `?`. So in the example above, the GUID would be `1e4ebf48-5d5b-4e27-986a-93c33209f8e6`. Note this GUID down along with the app name; we will need these again shortly.
-
-7. In the **Objects** view, expand the **Tables** option, then **Account** and then select **Forms**:
+6. The **Lab 2** custom page will be added to the app.
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_6.png)
 
-8. Click on **Add existing form**:
+7. Click on **Save** and then **Publish** to save and publish your changes:
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_7.png)
 
-9. Tick the option next to the **Account** form and then click on **Add**. The form will be added into your solution. Click on it to open the form designer:
+8. Click on the **Play** icon to open the **Account Management** app in a new tab, so we can test our changes:
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_8.png)
 
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_9.png)
+9. When the app opens, click on the **Lab 2** sitemap option. The custom page should load successfully. You may be prompted to **Allow** the **MSN Weather** connector as a one-time operation:
 
-10. In the form designer, select **Components** and then the click **1-column tab** component. This will add a new tab to the form that will be used to host our embedded canvas app:
+    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_9.png)
 
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_10.png)
 
+10. Experiment with the custom page to ensure it's working as expected. When you are finished, close the browser tab to return to the solution window.
+11. Click on **Back** to return to the solution page.
+12. In the solution view, click on **Publish all customizations** to ensure all changes are published:
+
     ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_11.png)
-
-11. Select the **New Tab** in the designer view. In the properties pane, update the properties as listed below:
-    - **Label**: `Contact Manager`
-    - **Name**: `tab_contactmanager`
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_12.png)
-
-12. Select the **New Section** in the designer view. In the properties pane, update the properties as listed below:
-    - **Label**: `Canvas App`
-    - **Name**: `section_contactmanager`
-    - **Hide label**: Checked
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_13.png)
-
-13. With the **section_contactmanager** section selected and the **Table columns** list visibe, untick the **Show only unused table columns** option and then drag the **Account Name** column into the section:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_14.png)
-
-14. Select the newly added **Account Name** column and tick the **Hide label** checkbox to hide the label for the column. Then, click on **Components** and then **+ Component**:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_15.png)
-
-15. In the **Add component** dialog, select **Canvas app**:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_16.png)
-
-16. The **Add Canvas app** dialog will appear. Populate the dialog with the following details and then press **Done**:
-    - **Entity** name: `Account`
-    - **App name**: The name of the canvas app you noted down in step 3.
-    - **App ID**: The GUID of the canvas app you noted down in step 6.
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_17.png)
-
-17. After a few moments, the form designer should update and display the `Lab 2` app in an embedded format:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_18.png)
-
-18. Click on **Save and publish** to save your changes:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_19.png)
-
-19. Although the app is now embedded correctly, there is no integration in functionality between the model-driven app form and the app itself. We want to adjust the app so it will only display **Contacts** that relate to the currently selected **Account** record. To do this, we need to make some specific modifications to the app and, first, include a specialised control in the app itself - the [ModelDrivenFormIntegration](https://learn.microsoft.com/en-us/power-apps/maker/model-driven-apps/embedded-canvas-app-properties-actions) control. To add this to an existing app, we need to follow some specific steps in the classic form designer. Click on the elipses (...) on the form designer ribbon and then select **Switch to classic**:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_20.png)
-
-> [!IMPORTANT]
-> You may be prompted to provide feedback on switching to the classic form designer. Skip this prompt to continue forward
-
-20. In the classic form designer, scroll down until you locate the **Account Name** column added in step 13 and double click on it:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_21.png)
-
-21. On the **Field Properties** dialog, click on **Controls**:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_22.png)
-
-22. On the **Controls** tab, select the **Canvas app** control and then click on the **Customize** button:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_23.png)
-
-23. The **Lab 2** canvas app will open a new browser tab. If prompted, click on **Skip** on the **Welcome to Power Apps Studio** prompt that appears. Once the app has loaded, verify that a new control, called **ModelDrivenFormIntegration** has been added to the app:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_24.png)
-
-24. Add the **Accounts** table as a data source to the app by clicking on **Data**, then **+ Add data**, and then selecting **Accounts**. This is required for the next step:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_25.png)
-
-25. Select the **ModelDrivenFormIntegration** control and adjust the **DataSource** property so that it's pointing to the newly added **Accounts** table:
-
-    ```
-    Accounts
-    ```
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_26.png)
-
-26. Now that the **ModelDrivenFormIntegration** control has been configured correctly, we can detect whether or not the app is currently being embedded and adjust specific features within the app. For example, we can alter the title at the top of the app to display the name of the parent **Account** if existing. Modify the **Text** property of the **Header Label** label to the following formula:
-
-    ```
-    If(
-        IsBlank(ModelDrivenFormIntegration.Data), 
-        "Wingtip Toys Contacts", 
-        Concatenate(
-            LookUp(Accounts, accountid = GUID(First([@ModelDrivenFormIntegration].Data).ItemId)).'Account Name', "'s Contacts"
-        )
-    )
-    ```
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_27.png)
-
-27. Adjust the following additional properties on the **Header Label**, to ensure that the title always displays correctly, even when the app is embedded. The app should resemble the below screenshot if configured correctly:
-
-    | Property | Formula |
-    | --- | --- |
-    | **Width** | `933` |
-    | **X** | `216` |
-    | **Y** | `14` |
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_28.png)
-
-28. Currently, the gallery will always display all contacts, based on the radio buttons selected. We need to adjust it so that, if the app is embedded, only Contacts relating to the parent Account are displayed. Adjust the **Items** property of the **Contact Gallery** control to the following formula:
-
-    ```
-    If(
-        IsBlank(ModelDrivenFormIntegration.Data),
-        Switch('Contact Filter'.SelectedText.Value, 
-            "All", Sort(Contacts, 'Full Name', SortOrder.Ascending),
-            "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal), 'Full Name', SortOrder.Ascending),
-            "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External), 'Full Name', SortOrder.Ascending)
-        ),
-        Switch('Contact Filter'.SelectedText.Value,
-            "All", Sort(Filter(Contacts, AsType('Company Name', [@Accounts]).Account = GUID(First([@ModelDrivenFormIntegration].Data).ItemId)), 'Full Name', SortOrder.Ascending),
-            "Internal", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.Internal, AsType('Company Name', [@Accounts]).Account = GUID(First([@ModelDrivenFormIntegration].Data).ItemId)), 'Full Name', SortOrder.Ascending),
-            "External", Sort(Filter(Contacts, 'External Contact?' = 'External Contact? (Contacts)'.External, AsType('Company Name', [@Accounts]).Account = GUID(First([@ModelDrivenFormIntegration].Data).ItemId)), 'Full Name', SortOrder.Ascending)
-        )
-    )
-    ```
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_29.png)
-
-> [!IMPORTANT]
-> The `AsType()` function is worth a special mention here. When working with polymorphic data types in Microsoft Dataverse, such as the **Customer** data type, Power Apps has no way to know whether the data you are working with is an Account or Contact. The `AsType()` function allows you to cast the data to a specific type, in this case, an Account, so that you can access the Account properties. This scenario assumes that the **Company Name** field is always populated with an Account, not a Contact. For more information on this function, [refer to the Microsoft Learn site](https://learn.microsoft.com/en-us/power-platform/power-fx/reference/function-astype-istype).
-
-29. Save the app by clicking on the **Save** icon in the top right-hand corner of the screen. Then, publish the latest changes by clicking on the **Publish** button, and then **Publish this version**.
-
-30. Close the browser tab to return to the classic form designer.
-
-31. Close the browser tab to return to the modern form designer.
-
-32. On the modern form designer, click on **Back** to return to the solution view.
-
-32. In the **Wingtip Toys PP Solution** view, click on **Apps** and then select the **Account Management** app. Click on the **Play** icon to open the app in a new tab:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_30.png)
-
-33. In the **My Active Accounts** view, select any Account record that has a suffix value of **(sample)**; these Account records already have related Contacts that we can test with.
-
-34. On the **Summary** tab, observe and confirm that that here are related Contacts in the **Contacts** sub-grid:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_31.png)
-
-35. Click on the **Contact Manager** tab to view the embedded canvas app. The app should display the name of the parent Account at the top of the app, and the same Contacts that are displayed in the sub-grid on the **Summary** tab:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_32.png)
-
-36. Experiment with selecting different radio buttons, to confirm that the gallery filters correctly. You can also (optionally) attempt to edit one of the existing Contacts or test from other Account records. When you are happy the app is working as expected, close the **Account Management** app to return to the solution view.
-
-37. Select the **Lab 2 JG** app and then click on the **Play** icon to open the app in a new tab:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_33.png)
-
-38. In the **Lab 2 JG** app, verify that the title of the app reads **Wingtip Toys Contacts** and that the gallery is displaying all Contacts. This confirms that the formulas are correctly detecting that the app is not currently embedded:
-
-    ![](Images/Lab3-ExtendingDataverseWithPowerFx/E5_34.png)
-
-39. Continue to test the app until you are satisfied it's working as expected. Close the app once you are finished.
 
 ### Optional Exercises 
 
@@ -714,7 +566,7 @@ You have now completed all required lab steps, but based on everything you have 
 - Currently, the `Lab 2` app does not support the ability to create new Contact records. What changes would you need to make to the app to support this functionality? Try to implement this change.
     - **Hint**: The `Defaults()` function will be particularly helpful here.
 - It might be useful to have filters in the app that allows a user to only see Contacts belonging to a specific Account record. How would you implement this feature? How would you ensure that the filters only appear when the app isn't embedded?
-- Based on the changes in Exercise 5, the Account GUID is used in several places. How could this redundancy be addressed, so that you only need to declare it once?
-    - **Hint**: The **OnStart** or **OnVisible** events could be useful here.
+- Based on the changes in Exercise 5, how could we allow users to navigate to the model-driven app **Contact** form from directly in the custom page?
+    - **Hint**: Some of the formulas listed on [this Power Apps Learn site](https://learn.microsoft.com/en-us/power-apps/maker/model-driven-apps/page-powerfx-in-model-app) might be useful here.
 
 **Congratulations, you've finished Lab 3** 🥳
